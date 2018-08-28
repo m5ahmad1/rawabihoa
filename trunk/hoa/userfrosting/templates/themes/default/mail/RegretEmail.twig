@@ -1,0 +1,24 @@
+{% block subject %}
+    Welcome to {{site.site_title}} - Please SignUp Again
+{% endblock %}
+
+{% block body %}
+<p>Dear {{user.display_name}},
+</p>
+<p>
+You are receiving this email because you registered with {{site.site_title}} ({{site.uri.public}}).
+</p>
+<p>
+You will need to SignUp agian With Correct Data
+</p>
+<p>
+If you have an Problem Please don't hesitate to contact Us 
+</p>
+<p>
+<a href="{{site.uri.public}}/account/register">{{site.uri.public}}/account/register</a>
+</p>
+<p>
+With regards,<br>
+The {{site.site_title}} Team
+</p>
+{% endblock %}

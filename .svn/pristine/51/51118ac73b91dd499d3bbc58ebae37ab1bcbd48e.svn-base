@@ -1,0 +1,23 @@
+{% block subject %}
+    {{site.site_title}} - Remainder For Payments
+{% endblock %}
+
+{% block body %}
+<p>Dear {{user.display_name}},
+</p>
+<p>
+You are receiving this email because you registered with {{site.site_title}} ({{site.uri.public}}).
+</p>
+<br>
+we want to remainder you that you have a new payment. <br>
+{{duedate}}.<br>
+{{amount}}.<br>
+{{remaining}}.<br>
+{{total}}.<br>
+
+
+<p>
+With regards,<br>
+The {{site.site_title}} Team
+</p>
+{% endblock %}

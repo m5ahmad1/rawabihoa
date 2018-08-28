@@ -1,0 +1,99 @@
+{% extends "layouts/layout-dashboard.twig" %} {% set page_group = "units" %} {# Set page properties (page.*) here. #} {% block page %} {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, but BEFORE the page itself is rendered. #} {% set page = page | merge({ "title" : "All Trasaction", "description" : "" }) %} {{ parent() }} #} {% endblock %} {% block content %}
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-primary">
+          <div class="container-fluid">
+            <h2>All Transaction</h2>
+               <div class="input-group custom-search-form" style="padding-bottom:10px">
+                    <input type="text" class="form-control searchtransaction" data-column="all" id="units-search-field" placeholder="Search...">
+                    <span class="input-group-btn">
+                    <button class="btn btn-default unit-search-button" type="button">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    </span>
+                </div>
+             <div class="panel panel-default">
+                 <div class="panel-body">
+         <div class="panel-body no-padding" >
+             <table id="allTransaction" class="table table-bordered table-hover table-striped tablesorter-bootstrap dataTables cellspacing=0 ">
+                    <thead>
+                        <th>Transaction Type</th>
+                        <th>Payment Date</th>
+                        <th>Payment Amount</th>
+                        <th>Payment Note</th>
+                        <th>Owner</th>
+                        <th>Rawabi Code</th>
+                        <th>Topo Code</th>
+                        <th>Done By</th>
+                     </thead>
+                    <tbody>
+                </tbody>
+            </table> 
+         </div> 
+        </div>
+      </div>
+     </div>
+    </div>    
+  </div>
+ </div>
+</div>
+{% endblock %} 
+{% block page_scripts %}
+<script>
+
+$(document).ready(function() {
+    csrf_token = $("meta[name=csrf_token]").attr("content");
+
+    var table = $('#allTransaction').DataTable({
+
+           'ajax': {
+            "type": "Get",
+            "url": site['uri']['public'] + '/transaction/all/',
+            "dataSrc": function(json) {
+                tableData = json;
+                console.log(json);
+                return json;
+            }
+        },
+       "paging": false,
+        "ordering": true,
+        "info": false,
+        "searching": false,
+        "responsive": true,
+
+        columns: [
+           { "data": "transaction_Type" },
+           { "data": "payment_Date" },
+           { "data": "payment_Amount" },
+           { "data": "payment_Note" },
+           {"data" :"display_name"},
+           { "data": "rawabicode" },
+           { "data": "topocode" },
+           { "data": "done_by" },
+        
+        ],
+
+        fnRowCallback: function(row, data, iDisplayIndex, iDisplayIndexFull) {
+            // Set data-id=id on the row
+            $(row).data('id', data.id);
+        }
+
+    })
+    //search Filter
+    $('#units-search-field').on('input', function(e) {
+    var search = $('#units-search-field').val().toLowerCase();
+    $('#allTransaction').each(function() { // Search among possibly multiple tables
+        // Hide all table rows
+        $(this).find('tbody tr').hide();
+        // Search through all td:s and if a match is found => display the tr that the td belongs to
+        $(this).find('tbody td').filter(function() {
+            return $(this).text().toLowerCase().indexOf(search) != -1; // case insensitive search
+        }).parent().show();
+        $(this).trigger('applyWidgets'); // for zebra
+    });
+  });
+});
+
+
+</script>
+{% endblock %}

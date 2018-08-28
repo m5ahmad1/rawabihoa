@@ -1,0 +1,655 @@
+<?php
+/**
+ * UserFrosting initialization file.  Handles setup for database, site settings, JS/CSS includes, etc.
+ *
+ * @author Alex Weissman
+ * @link http://www.userfrosting.com
+ */
+
+require_once 'vendor/autoload.php';
+require_once 'models/auth/password.php';
+
+// This if-block just checks that config-userfrosting.php exists
+if (!file_exists(__DIR__ . "/config-userfrosting.php")){
+	http_response_code(503);
+    echo "<h2>We can't seem to find config-userfrosting.php!  You should rename the file config-userfrosting-example.php to config-userfrosting.php, and then fill in the configuration details for your database and server.  For more information, please see the <a href='http://www.userfrosting.com/installation/#install-userfrosting'>installation instructions</a>.</h2><br>";
+    exit;
+}
+
+require_once 'config-userfrosting.php';
+
+use \Slim\Extras\Middleware\CsrfGuard;
+
+// Start session
+$app->startSession();
+
+/*===== Middleware.  Middleware gets run when $app->run is called, i.e. AFTER the code in initialize.php ====*/
+
+/**** CSRF Middleware ****/
+$app->add(new CsrfGuard());
+
+/**** Session and User Setup ****/
+$app->add(new UserFrosting\UserSession());
+
+/**** Database Setup ****/
+
+// Eloquent Query Builder
+use Illuminate\Database\Capsule\Manager as Capsule;
+
+$capsule = new Capsule;
+
+$dbx = $app->config('db');
+
+$connection_array = [
+    'driver'    => 'mysql',
+    'host'      => $dbx['db_host'],
+    'database'  => $dbx['db_name'],
+    'username'  => $dbx['db_user'],
+    'password'  => $dbx['db_pass'],
+    'charset'   => 'utf8',
+    'collation' => 'utf8_unicode_ci',
+    'prefix'    => ''
+];
+
+// This is for backwards compatibility. Pre-0.3.1.19 configuration files won't have $dbx['db_port'] or $dbx['db_driver'] defined at all.
+if (isset($dbx['db_port'])) {
+    $connection_array['port'] = $dbx['db_port'];
+}
+
+if (isset($dbx['db_driver'])) {
+    $connection_array['driver'] = $dbx['db_driver'];
+}
+
+$capsule->addConnection($connection_array);
+
+// Register as global connection
+$capsule->setAsGlobal();
+
+// Start Eloquent
+$capsule->bootEloquent();
+
+// Set enumerative values
+defined("GROUP_NOT_DEFAULT") or define("GROUP_NOT_DEFAULT", 0);
+defined("GROUP_DEFAULT") or define("GROUP_DEFAULT", 1);
+defined("GROUP_DEFAULT_PRIMARY") or define("GROUP_DEFAULT_PRIMARY", 2);
+
+// Pass Slim app to database and core data model
+\UserFrosting\Database::$app = $app;
+\UserFrosting\UFModel::$app = $app;
+
+// Initialize database properties
+$table_files = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "files", [
+    "file_name",
+    "uploaded",
+    "Neighborhood",
+    "PostedDate",
+    "visible"
+]);
+
+$table_user = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "user", [
+    "user_name",
+    "display_name",
+    "email",
+    "title",
+    "locale",
+    "primary_group_id",
+    "secret_token",
+    "flag_verified",
+    "flag_enabled",
+    "flag_password_reset",
+    "created_at",
+    "updated_at",
+    "password",
+    "phone_number"
+]);
+
+$table_user_event = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "user_event", [
+    "user_id",
+    "event_type",
+    "occurred_at",
+    "description"
+]);
+
+$table_group = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "group", [
+    "name",
+    "is_default",
+    "can_delete",
+    "theme",
+    "landing_page",
+    "new_user_title",
+    "icon"
+]);
+
+$table_unit = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "unit", [
+    "unit",
+    "neighborhood",
+    "user_id",
+    "pending_user",
+    "email",
+    "phone",
+    "dateofres",
+    "rawabicode",
+    "topocode",
+    'key_handing',
+    'owner_name'
+    
+]);
+$table_payments = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "payments", [
+    "payment_Amount",
+    "payment_due_date",
+    "unit_id",
+    "year",
+    "amount_Due",
+    "total_balance",
+    "remaining"
+]);
+
+$table_transactions = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "transactions", [
+    "id",
+    "admin_transaction_date",
+    "unit_id",
+    "bill_id",
+    "payment_number",
+    "payment_type",
+    "payment_Date",
+    "payment_Amount",
+    "payment_due_date",
+    "done_by"
+]);
+
+$table_payment_transactions = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "payment_transactions", [
+    "id",
+    "unit_id",
+    "amount",
+    "payment_date",
+    "payment_type",
+    "payment_number",
+    "payment_note",
+    "executed_by",
+    "admin_transaction_date",
+    "payment_year"
+]);
+
+$table_bill_transactions = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "bill_transactions", [
+    "id",
+    "unit_id",
+    "bill_year_month",
+    "bill_old_amount",
+    "bill_new_amount",
+    "admin_transaction_date",
+    "executed_by",
+    "bill_note",
+]);
+
+$table_fixed_bills_operations = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "fixed_bills_operations", [
+    "id",
+    "year",
+    "billAmount",
+    "extraFees",
+    "interestAmount"   
+]);
+
+$table_unitspayments = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "unitspayments", [
+    "unit",
+    "owner",
+    "neighborhood",
+    "jan",
+    "feb",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "aug",
+    "sep",
+    "oct",
+    "nov",
+    "dec",
+    "uf_unit"
+]);
+
+$table_group_user = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "group_user");
+$table_payments_unit = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "payments_unit");
+// $table_payment_user = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "payment_user");
+$table_configuration = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "configuration");
+$table_authorize_user = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "authorize_user");
+$table_authorize_group = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "authorize_group");
+$table_bills = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "bills", [
+	"billDate",
+    "billAmount",
+    "unit_id",
+   
+]);
+$table_fixed_bills = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "fixed_bills", [
+	"year",
+    "billAmount",
+   
+]);
+
+$table_neighborhood = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "neighborhood", [
+    "neighborhood_en",
+    "neighborhood_ar"
+]);
+
+$table_about_us_members = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "about_us_members", [
+    "id",
+    "name",
+    "profile_pic_path",
+    "neighborhood_id",
+    "membership_type",
+    "description",
+    "display"
+]);
+
+$table_tickets = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "tickets", [
+    "id",
+    "user_id",
+    "message",
+    "feedback",
+    "status",
+    "sent_at",
+    "feedback_sent_at"
+]);
+
+$table_owner = new \UserFrosting\DatabaseTable($app->config('db')['db_prefix'] . "owner", [
+    "id",
+    "name",
+    "user_id"
+]);
+
+
+
+\UserFrosting\Database::setSchemaTable("user", $table_user);
+\UserFrosting\Database::setSchemaTable("unit", $table_unit);
+\UserFrosting\Database::setSchemaTable("unitspayments", $table_unitspayments);
+\UserFrosting\Database::setSchemaTable("files", $table_files);
+\UserFrosting\Database::setSchemaTable("payments", $table_payments);
+\UserFrosting\Database::setSchemaTable("transactions", $table_transactions);
+\UserFrosting\Database::setSchemaTable("payments_unit", $table_payments_unit);
+\UserFrosting\Database::setSchemaTable("fixed_bills_operations", $table_fixed_bills_operations);
+// \UserFrosting\Database::setSchemaTable("payment_user", $table_payment_user);
+\UserFrosting\Database::setSchemaTable("user_event", $table_user_event);
+\UserFrosting\Database::setSchemaTable("group", $table_group);
+\UserFrosting\Database::setSchemaTable("group_user", $table_group_user);
+\UserFrosting\Database::setSchemaTable("configuration", $table_configuration);
+\UserFrosting\Database::setSchemaTable("authorize_user", $table_authorize_user);
+\UserFrosting\Database::setSchemaTable("authorize_group", $table_authorize_group);
+\UserFrosting\Database::setSchemaTable("bills", $table_bills);
+\UserFrosting\Database::setSchemaTable("fixed_bills", $table_fixed_bills);
+\UserFrosting\Database::setSchemaTable("neighborhood", $table_neighborhood);
+\UserFrosting\Database::setSchemaTable("about_us_members", $table_about_us_members);
+\UserFrosting\Database::setSchemaTable("tickets", $table_tickets);
+\UserFrosting\Database::setSchemaTable("payment_transactions", $table_payment_transactions);
+\UserFrosting\Database::setSchemaTable("bill_transactions", $table_bill_transactions);
+\UserFrosting\Database::setSchemaTable("owner", $table_owner);
+
+// Info for RememberMe table
+$app->remember_me_table = [
+    'tableName' => $app->config('db')['db_prefix'] . "user_rememberme",
+    'credentialColumn' => 'user_id',
+    'tokenColumn' => 'token',
+    'persistentTokenColumn' => 'persistent_token',
+    'expiresColumn' => 'expires'
+];
+
+/* Event Types
+    "sign_up",
+    "sign_in",
+    "verification_request",
+    "password_reset_request",
+*/
+
+/* Load UserFrosting site settings */
+
+// Default settings
+$setting_values = [
+    'userfrosting' => [
+        'site_title' => 'UserFrosting',
+        'admin_email' => 'admin@userfrosting.com',
+        'email_login' => '1',
+        'can_register' => '1',
+        'enable_captcha' => '1',
+        'require_activation' => '1',
+        'resend_activation_threshold' => '0',
+        'reset_password_timeout' => '10800',
+        'create_password_expiration' => '86400',
+        'default_locale' => 'en_US',
+        'guest_theme' => 'default',
+        'minify_css' => '0',
+        'minify_js' => '0',
+        'version' => '0.3.1.23',
+        'author' => 'Alex Weissman',
+        'show_terms_on_register' => '1',
+        'site_location' => 'The State of Indiana'
+    ]
+];
+$setting_descriptions = [
+    'userfrosting' => [
+        "site_title" => "The title of the site.  By default, displayed in the title tag, as well as the upper left corner of every user page.",
+        "admin_email" => "The administrative email for the site.  Automated emails, such as verification emails and password reset links, will come from this address.",
+        "email_login" => "Specify whether users can login via email address or username instead of just username.",
+        "can_register" => "Specify whether public registration of new accounts is enabled.  Enable if you have a service that users can sign up for, disable if you only want accounts to be created by you or an admin.",
+        "enable_captcha" => "Specify whether new users must complete a captcha code when registering for an account.",
+        "require_activation" => "Specify whether email verification is required for newly registered accounts.  Accounts created by another user never need to be verified.",
+        "resend_activation_threshold" => "The time, in seconds, that a user must wait before requesting that the account verification email be resent.",
+        "reset_password_timeout" => "The time, in seconds, before a user's password reset token expires.",
+        "create_password_expiration" => "The time, in seconds, before a new user's password creation token expires.",
+        "default_locale" => "The default language for newly registered users.",
+        "guest_theme" => "The template theme to use for unauthenticated (guest) users.",
+        "minify_css" => "Specify whether to use concatenated, minified CSS (production) or raw CSS includes (dev).",
+        "minify_js" => "Specify whether to use concatenated, minified JS (production) or raw JS includes (dev).",
+        "version" => "The current version of UserFrosting.",
+        "author" => "The author of the site.  Will be used in the site's author meta tag.",
+        "show_terms_on_register" => "Specify whether or not to show terms and conditions when registering.",
+        "site_location" => "The nation or state in which legal jurisdiction for this site falls."
+    ]
+];
+
+// Create the site settings object.  If the database cannot be accessed or has not yet been set up, use the default settings.
+$app->site = new \UserFrosting\SiteSettings($setting_values, $setting_descriptions);
+
+// Create the page schema object
+$app->schema = new \UserFrosting\PageSchema($app->site->uri['css'], $app->config('css.path') , $app->site->uri['js'], $app->config('js.path') );
+
+// Create a guest user, which lets us proceed until we can try to authenticate the user
+$app->setupGuestEnvironment();
+
+// Setup Twig custom functions
+$app->setupTwig();
+
+/** Register site settings with site settings config page */
+$app->hook('settings.register', function () use ($app){
+    // Register core site settings
+    $app->site->register('userfrosting', 'site_title', "Site Title");
+    $app->site->register('userfrosting', 'site_location', "Site Location");
+    $app->site->register('userfrosting', 'author', "Site Author");
+    $app->site->register('userfrosting', 'admin_email', "Account Management Email");
+    $app->site->register('userfrosting', 'default_locale', "Locale for New Users", "select", $app->site->getLocales());
+    $app->site->register('userfrosting', 'guest_theme', "Guest Theme", "select", $app->site->getThemes());
+    $app->site->register('userfrosting', 'can_register', "Public Registration", "toggle", [0 => "Off", 1 => "On"]);
+    $app->site->register('userfrosting', 'enable_captcha', "Registration Captcha", "toggle", [0 => "Off", 1 => "On"]);
+    $app->site->register('userfrosting', 'show_terms_on_register', "Show TOS", "toggle", [0 => "Off", 1 => "On"]);
+    $app->site->register('userfrosting', 'require_activation', "Require Account Activation", "toggle", [0 => "Off", 1 => "On"]);
+    $app->site->register('userfrosting', 'email_login', "Email Login", "toggle", [0 => "Off", 1 => "On"]);
+    $app->site->register('userfrosting', 'resend_activation_threshold', "Resend Activation Email Cooloff (s)");
+    $app->site->register('userfrosting', 'reset_password_timeout', "Password Recovery Timeout (s)");
+    $app->site->register('userfrosting', 'create_password_expiration', "Create Password for New Users Timeout (s)");
+    $app->site->register('userfrosting', 'minify_css', "Minify CSS", "toggle", [0 => "Off", 1 => "On"]);
+    $app->site->register('userfrosting', 'minify_js', "Minify JS", "toggle", [0 => "Off", 1 => "On"]);
+}, 1);
+
+// Register CSS and JS includes for the pages
+$app->hook('includes.css.register', function () use ($app){
+    // Register common CSS files
+  
+    $app->schema->registerCSS("common", "normalize.css");
+    $app->schema->registerCSS("common", "font-awesome-4.3.0.css");
+    $app->schema->registerCSS("common", "font-starcraft.css");
+    $app->schema->registerCSS("common", "bootstrap-3.3.2.css");
+    $app->schema->registerCSS("common", "bootstrap-modal-bs3patch.css");   // Must be included BEFORE bootstrap-modal.css
+    $app->schema->registerCSS("common", "bootstrap-modal.css");
+    $app->schema->registerCSS("common", "lib/metisMenu.css");
+    $app->schema->registerCSS("common", "bootstrap-custom.css");
+    $app->schema->registerCSS("common", "bootstrap-switch.css");
+    $app->schema->registerCSS("common", "tablesorter/theme.bootstrap.css");
+    $app->schema->registerCSS("common", "tablesorter/jquery.tablesorter.pager.css");
+    $app->schema->registerCSS("common", "select2/select2.css");
+    $app->schema->registerCSS("common", "select2/select2-bootstrap.css");
+    $app->schema->registerCSS("common", "bootstrapradio.css");
+    $app->schema->registerCSS("common", "common.css");
+
+    $app->schema->registerCSS("home", "homepage.css");
+
+    $app->schema->registerCSS("units", "datepicker.css");
+    $app->schema->registerCSS("units", "bootstrap-datepicker.min.css");
+    $app->schema->registerCSS("units", "bootstrap-select.min.css");
+    $app->schema->registerCSS("units", "dataTables.bootstrap.min.css");
+    $app->schema->registerCSS("units", "responsive.dataTables.min.css");        
+    $app->schema->registerCSS("units", "invoice.css");
+    $app->schema->registerCSS("units", "unitindex.css");
+ 
+    $app->schema->registerCSS("files", "datepicker.css");
+    $app->schema->registerCSS("files", "bootstrap-datepicker.min.css");
+    // $app->schema->registerCSS("files", "bootstrap-select.min.css");
+    $app->schema->registerCSS("files", "responsive.dataTables.min.css");        
+    $app->schema->registerCSS("files", "unitindex.css");
+
+
+     $app->schema->registerCSS("Payments", "bootstrap-datepicker.min.css");
+
+    $app->schema->registerCSS("about_us_members", "imgareaselect-default.css");
+    $app->schema->registerCSS("about_us_members", "about-us-members.css");
+    $app->schema->registerCSS("about_us", "about-us.css");
+
+    $app->schema->registerCSS("ticket", "ticket.css");
+    $app->schema->registerCSS("ticket", "dataTables.bootstrap.min.css");
+    $app->schema->registerCSS("ticket", "responsive.dataTables.min.css"); 
+
+    $app->schema->registerCSS("transactions", "transaction.css");
+    $app->schema->registerCSS("transactions", "dataTables.bootstrap.min.css");
+    $app->schema->registerCSS("transactions", "responsive.dataTables.min.css"); 
+
+    $app->schema->registerCSS("unit", "invoiceReceipt.css");
+    $app->schema->registerCSS("unit", "datepicker.css");
+    $app->schema->registerCSS("unit", "bootstrap-datepicker.min.css");
+    $app->schema->registerCSS("unit", "bootstrap-select.min.css");
+    $app->schema->registerCSS("unit", "dataTables.bootstrap.min.css");
+    $app->schema->registerCSS("unit", "responsive.dataTables.min.css");        
+    $app->schema->registerCSS("unit", "invoice.css");
+    $app->schema->registerCSS("unit", "jquery.tipsy.css"); 
+
+
+    // Dashboard CSS
+    $app->schema->registerCSS("bills", "datepicker.css");
+    $app->schema->registerCSS("bills", "bootstrap-datepicker.min.css");
+    $app->schema->registerCSS("bills", "bootstrap-select.min.css");
+    $app->schema->registerCSS("bills", "dataTables.bootstrap.min.css");
+    $app->schema->registerCSS("bills", "responsive.dataTables.min.css");        
+    
+
+          
+    $app->schema->registerCSS("user", "users.css");
+
+    //Upload files Css
+    $app->schema->registerCSS("files", "dropzone.css");
+
+    // Logged-out CSS
+        $app->schema->registerCSS("loggedout", "homepage.css");
+
+    $app->schema->registerCSS("loggedout", "jumbotron-narrow.css");
+
+}, 1);
+
+$app->hook('includes.js.register', function () use ($app){
+    // Register common JS files
+    $app->schema->registerJS("common", "jquery-1.11.2.js");
+    $app->schema->registerJS("common", "bootstrap-3.3.2.js");
+    $app->schema->registerJS("common", "bootstrap-modal.js");
+    $app->schema->registerJS("common", "bootstrap-modalmanager.js");
+    $app->schema->registerJS("common", "sb-admin-2.js");
+    $app->schema->registerJS("common", "lib/metisMenu.js");
+    $app->schema->registerJS("common", "jqueryValidation/jquery.validate.js");
+    $app->schema->registerJS("common", "jqueryValidation/additional-methods.js");
+    $app->schema->registerJS("common", "jqueryValidation/jqueryvalidation-methods-fortress.js");
+    $app->schema->registerJS("common", "moment.js");
+    $app->schema->registerJS("common", "tablesorter/jquery.tablesorter.js");
+    $app->schema->registerJS("common", "tablesorter/tables.js");
+    $app->schema->registerJS("common", "tablesorter/jquery.tablesorter.pager.js");
+    $app->schema->registerJS("common", "tablesorter/jquery.tablesorter.widgets.js");
+    $app->schema->registerJS("common", "tablesorter/widgets/widget-sort2Hash.js");
+    $app->schema->registerJS("common", "select2/select2.min.js");
+    $app->schema->registerJS("common", "bootstrapradio.js");
+    $app->schema->registerJS("common", "bootstrap-switch.js");
+    $app->schema->registerJS("common", "handlebars-v1.2.0.js");
+    $app->schema->registerJS("common", "userfrosting.js");
+    $app->schema->registerJS("common", "nav-head-fix.js");
+
+    
+    //bills JS
+    $app->schema->registerJS("bills", "lib/raphael.js");
+    $app->schema->registerJS("bills", "lib/morris.js");
+    $app->schema->registerJS("bills", "bootstrap-multiselect.js");
+    $app->schema->registerJS("bills", "moment.min.js");
+    $app->schema->registerJS("bills", "bootstrap-datepicker.js");
+    $app->schema->registerJS("bills", "bootstrap-datetimepicker.min.js");
+    $app->schema->registerJS("bills", "bootstrap-select.min.js");
+    $app->schema->registerJS("bills", "jquery.dataTables.min.js");
+    $app->schema->registerJS("bills", "dataTables.responsive.min.js");
+    $app->schema->registerJS("bills", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("bills", "dataTables.buttons.min.js");
+    $app->schema->registerJS("bills", "buttons.bootstrap.min.js");
+    $app->schema->registerJS("bills", "jszip.js");
+    $app->schema->registerJS("bills", "async.js");
+    $app->schema->registerJS("bills", "pdfmake.min.js");
+    $app->schema->registerJS("bills", "vfs_fonts.js");
+    $app->schema->registerJS("bills", "buttons.html5.min.js");
+    $app->schema->registerJS("bills", "buttons.print.min.js");
+    $app->schema->registerJS("bills", "rasterizeHTML.allinone.js");
+    $app->schema->registerJS("bills", "jquery.watermark.min.js");
+    $app->schema->registerJS("bills", "jspdf.debug.js");
+    $app->schema->registerJS("bills", "underscore-min.js");
+   
+
+
+
+    // Dashboard JS
+    $app->schema->registerJS("dashboard", "lib/raphael.js");
+    $app->schema->registerJS("dashboard", "lib/morris.js");
+    $app->schema->registerJS("dashboard", "bootstrap-datetimepicker.min.js");
+    $app->schema->registerJS("dashboard", "bootstrap-multiselect.js");
+     
+  
+    // Users JS
+    $app->schema->registerJS("user", "widget-users.js");
+
+    // Groups JS
+    $app->schema->registerJS("group", "widget-groups.js");
+
+    // Auth JS
+    $app->schema->registerJS("auth", "widget-auth.js");
+
+    $app->schema->registerJS("SharedFiles", "bootstrap-datepicker.js");
+    $app->schema->registerJS("SharedFiles", "bootstrap-datetimepicker.min.js");
+    /*added by fadi*/
+        // $app->schema->registerJS("unit", "jquery-1.11.2.js");
+    $app->schema->registerJS("unit", "moment.min.js");
+    $app->schema->registerJS("unit", "bootstrap-datepicker.js");
+    $app->schema->registerJS("unit", "bootstrap-datetimepicker.min.js");
+    $app->schema->registerJS("unit", "bootstrap-select.min.js");
+    $app->schema->registerJS("unit", "jquery.dataTables.min.js");
+    $app->schema->registerJS("unit", "dataTables.responsive.min.js");
+    $app->schema->registerJS("unit", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("unit", "dataTables.buttons.min.js");
+    $app->schema->registerJS("unit", "buttons.bootstrap.min.js");
+    $app->schema->registerJS("unit", "jszip.js");
+    $app->schema->registerJS("unit", "async.js");
+    $app->schema->registerJS("unit", "pdfmake.min.js");
+    $app->schema->registerJS("unit", "vfs_fonts.js");
+    $app->schema->registerJS("unit", "buttons.html5.min.js");
+    $app->schema->registerJS("unit", "buttons.print.min.js");
+    $app->schema->registerJS("unit", "rasterizeHTML.allinone.js");
+    $app->schema->registerJS("unit", "jquery.watermark.min.js");
+    $app->schema->registerJS("unit", "jspdf.debug.js");
+    $app->schema->registerJS("unit", "underscore-min.js");
+    $app->schema->registerJS("unit", "dataTables.responsive.min.js");
+    $app->schema->registerJS("unit", "bootstrap-datepicker.js");
+    $app->schema->registerJS("unit", "bootstrap-datetimepicker.min.js");
+    $app->schema->registerJS("unit", "jquery.tipsy.min.js");
+    // $app->schema->registerJS("unit", "notify.js");
+    //     $app->schema->registerJS("unit", "notify.min.js");
+
+
+
+    $app->schema->registerJS("units", "moment.min.js");
+    $app->schema->registerJS("units", "bootstrap-datepicker.js");
+    $app->schema->registerJS("units", "bootstrap-datetimepicker.min.js");
+    $app->schema->registerJS("units", "bootstrap-select.min.js");
+    $app->schema->registerJS("units", "jquery.dataTables.min.js");
+    $app->schema->registerJS("units", "dataTables.responsive.min.js");
+    $app->schema->registerJS("units", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("units", "dataTables.buttons.min.js");
+    $app->schema->registerJS("units", "buttons.bootstrap.min.js");
+    $app->schema->registerJS("units", "jszip.js");
+    $app->schema->registerJS("units", "async.js");
+    $app->schema->registerJS("units", "pdfmake.min.js");
+    $app->schema->registerJS("units", "vfs_fonts.js");
+    $app->schema->registerJS("units", "buttons.html5.min.js");
+    $app->schema->registerJS("units", "buttons.print.min.js");
+    $app->schema->registerJS("units", "rasterizeHTML.allinone.js");
+    $app->schema->registerJS("units", "jquery.watermark.min.js");
+    $app->schema->registerJS("units", "jspdf.debug.js");
+    $app->schema->registerJS("units", "underscore-min.js");
+    $app->schema->registerJS("units", "dataTables.responsive.min.js");
+    $app->schema->registerJS("units", "bootstrap-datepicker.js");
+    $app->schema->registerJS("units", "bootstrap-datetimepicker.min.js");
+
+    $app->schema->registerJS("about_us_members", "jquery.imgareaselect.js");
+
+    $app->schema->registerJS("ticket", "jquery.dataTables.min.js");
+    $app->schema->registerJS("ticket", "dataTables.responsive.min.js");
+    $app->schema->registerJS("ticket", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("ticket", "dataTables.buttons.min.js");
+
+    
+    $app->schema->registerJS("transactions", "jquery.dataTables.min.js");
+    $app->schema->registerJS("transactions", "dataTables.responsive.min.js");
+    $app->schema->registerJS("transactions", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("transactions", "dataTables.buttons.min.js");
+
+
+    $app->schema->registerJS("Payments", "bootstrap-datepicker.js");
+    $app->schema->registerJS("Payments", "bootstrap-datetimepicker.min.js");
+    $app->schema->registerJS("Payments", "jquery.dataTables.min.js");
+    $app->schema->registerJS("Payments", "dataTables.responsive.min.js");
+    $app->schema->registerJS("Payments", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("Payments", "dataTables.buttons.min.js");
+
+
+    $app->schema->registerJS("files", "dropzone.js");
+    $app->schema->registerJS("files", "moment.min.js");
+    $app->schema->registerJS("files", "bootstrap-datepicker.js");
+    $app->schema->registerJS("files", "bootstrap-datetimepicker.min.js");
+    $app->schema->registerJS("files", "bootstrap-select.min.js");
+    $app->schema->registerJS("files", "jquery.dataTables.min.js");
+    $app->schema->registerJS("files", "dataTables.responsive.min.js");
+    $app->schema->registerJS("files", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("files", "dataTables.buttons.min.js");
+    $app->schema->registerJS("files", "buttons.bootstrap.min.js");
+    $app->schema->registerJS("files", "jszip.js");
+    $app->schema->registerJS("files", "async.js");
+    $app->schema->registerJS("files", "pdfmake.min.js");
+    $app->schema->registerJS("files", "vfs_fonts.js");
+    $app->schema->registerJS("files", "buttons.html5.min.js");
+    $app->schema->registerJS("files", "buttons.print.min.js");
+    $app->schema->registerJS("files", "rasterizeHTML.allinone.js");
+    $app->schema->registerJS("files", "jquery.watermark.min.js");
+    $app->schema->registerJS("files", "jspdf.debug.js");
+    $app->schema->registerJS("files", "underscore-min.js");
+    $app->schema->registerJS("files", "dataTables.responsive.min.js");
+    $app->schema->registerJS("files", "bootstrap-datepicker.js");
+    $app->schema->registerJS("files", "bootstrap-datetimepicker.min.js");
+
+
+    $app->schema->registerJS("neighborhood", "jquery.dataTables.min.js");
+    $app->schema->registerJS("neighborhood", "dataTables.responsive.min.js");
+    $app->schema->registerJS("neighborhood", "dataTables.bootstrap.min.js");
+    $app->schema->registerJS("neighborhood", "dataTables.buttons.min.js");
+    $app->schema->registerJS("neighborhood", "buttons.bootstrap.min.js");
+    $app->schema->registerJS("neighborhood", "jszip.js");
+    $app->schema->registerJS("neighborhood", "async.js");
+    
+
+
+    /*ended by fadi*/
+}, 1);
+
+/** Plugins */
+// Run initialization scripts for plugins
+$var_plugins = $app->site->getPlugins();
+foreach($var_plugins as $var_plugin){
+    require_once($app->config('plugins.path')."/".$var_plugin."/config-plugin.php");
+}
+
+// Hook for core and plugins to register includes
+$app->applyHook("includes.css.register");
+$app->applyHook("includes.js.register");

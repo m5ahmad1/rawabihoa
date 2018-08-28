@@ -1,0 +1,566 @@
+{% extends "layouts/layout-dashboard.twig" %} {% set page_group = "files" %} {# Set page properties (page.*) here. #} {% block page %} {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, but BEFORE the page itself is rendered. #} {% set page = page | merge({ "title" : "Upload Units", "description" : "" }) %} {{ parent() }} #} {% endblock %} {% block content %}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-primary">
+          <div class="container-fluid">
+            <h2>Upload Files</h2>
+             <div class="panel panel-default">
+                 <div class="panel-body">
+
+                <form action="" class="dropzone" id="my-dropzone"></form>
+            </div>
+            <button class="btn btn-success ButtonSubmit" id="submitallfiles"> Submit All Files</button>
+            <div>
+              <br>
+              <div id="settings-alerts" class="create-unit-alert">
+           </div>
+           <div class="panel-body no-padding">
+            <table style="word-break:break-all;" id="allFiles" class="table table-bordered table-hover table-striped tablesorter-bootstrap dataTables cellspacing=0 ">
+               <thead>
+                  <th>File</th>
+                  <th>Display Name</th>
+                  <th>Upload Date</th>
+                  <th>Neighborhood</th>
+                  <th>Posted Date</th>
+                  <th>Visible</th>
+                  <th>Action</th>
+               </thead>
+               <tbody>
+               </tbody>
+            </table>
+            
+         </div>
+       </div>    
+      </div>    
+     </div>    
+    </div>    
+   </div>    
+  </div>    
+
+<!-- delete file Modal -->
+<div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+            <h4 class="modal-title custom_align" id="Heading">Delete a File</h4>
+        </div>
+        <div class="modal-body">
+            <div class="alert">Are you sure you want to delete this File?</div>
+        </div>
+        <div class="modal-footer ">
+            <button type="button" class="btn btn-danger" id="deletefile">Yes</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+            <h4 class="modal-title custom_align" id="Heading"> Edit File</h4>
+        </div>
+        <div class="modal-body" >
+            <div class="row">
+                <div class="col-xs-1"></div>
+                <div class="col-xs-10">
+                    <form class="form-horizontall" role="form">
+                     <div class="form-group">
+                            <label for="neighborhood">Neighborhood</label>
+                            <select class="form-control neighborhood" name="neighborhood" id="eneighborhood">
+                                <option>All</option>
+                                {% for key, value in neighborhood  %}
+                                <option value="{{ value.id }}">{{ value.neighborhood_en }} - {{value.neighborhood_ar}}</option>
+                            {% endfor %}
+                            </select>
+                           <div class="number-alerts-1" style="color:red"></div>
+                        </div> 
+                  <div class="form-group">
+                  <label >Posted Date</label>
+                  <div class='input-group date datepicker'>
+                    <input type='text' class="form-control ePostedDate" id="ePostedDate" />
+                      <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                      </span>
+                    </div>
+                </div> 
+                  <div class="form-group">
+                            <label for="eDisplayName">Display Name</label>
+                             <input type='text' class="form-control eDisplayName" id="eDisplayName" />
+                           <div class="number-alerts-1" style="color:red"></div>
+                        </div> 
+                <br>
+                  <div class="form-group">
+                  <label >Visible</label>
+                  <div class='input-group'>
+                     <div class="switch">
+                  <input id="cmn-toggle-4" name="cmn-toggle-4" class="cmn-toggle cmn-toggle-round-flat evisible" type="checkbox" value="true" checked>
+                  <label for="cmn-toggle-4"></label>
+                  </div>
+                    </div>
+                </div>
+            
+
+                    </form>
+                </div>
+                <div class="col-xs-1"></div>
+
+            </div>
+        </div>
+        <div class="modal-footer ">
+            <button type="button" id="editfile" class="btn btn-warning">Update</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</div>
+
+    <!-- spinner loader  loader-modal-lg modal -->
+ {% include 'components/common/spinnerLoader.twig' %}
+
+{% endblock %}
+
+{% block page_scripts %}
+
+<script>
+
+
+
+
+
+$(document).ready(function() {
+
+
+    var table = $('#allFiles').DataTable({
+
+        'ajax': {
+            "type": "Get",
+
+            "url": site['uri']['public'] + '/upload/up/',
+            "dataSrc": function(json) {
+                tableData = json;
+
+                return json;
+            
+            }
+        },
+        "paging": true,
+        "ordering": true,
+        "info": false,
+        "searching": false,
+        "responsive": true,
+        "pageLength": 4,
+        "bLengthChange": false,
+
+        columns: [{
+                "data": "file_name",
+                "fnCreatedCell": function(nTd, sData, oData, iRow, iCol) {
+
+                    FileName =  oData.file_name;
+                   var myString = FileName.substr(FileName.indexOf("_") + 1)
+                    $(nTd).html("<a href=uploads/"+oData.file_name+" download>" + myString + "</a>");
+                                            
+
+                }
+            },
+            {data:"DisplayName", 
+            render: function ( data, type, row ) {
+                   var myString = data.substr(data.indexOf("_") + 1)
+                   return myString
+                }
+
+            },
+            { "data": "uploaded"},
+            // {"data":"neighborhood_en" },
+            { data: "neighborhood_en" ,render: function ( data, type, row ) {
+                  if (data == null) {
+                    return 'All';
+                    }
+                  else{
+                    return data;
+                  }
+                }
+            },   
+         
+
+            {"data":"PostedDate"},
+           { data: "visible" ,render: function ( data, type, row ) {
+                  if (data == 1) {
+                    return 'Yes';
+                    }
+                  else{
+                    return 'No';
+                  }
+                }
+            },   
+         
+           { "data": null, "defaultContent": '<div class="btn-group"><button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Actions<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li><a href="#"  id="deletefile" data-title="Delete File" data-target="#delete" data-placement="top" data-toggle="tooltip"><i class="fa fa-trash-o"></i> Delete File</a></li><li><a href="#" id="editfile" data-title="Edit" data-target="#edit"  data-toggle="tooltip" ><i class="fa fa-edit"></i> Edit File</a></li></ul></div>' }
+        ],
+
+
+
+
+
+        fnRowCallback: function(row, data, iDisplayIndex, iDisplayIndexFull) {
+            // Set data-id=id on the row
+            $(row).data('id', data.id);
+            $(row).data('file_name', data.file_name);
+        }
+
+    })
+
+
+    csrf_token = $("meta[name=csrf_token]").attr("content");
+    Dropzone.autoDiscover = false;
+    Dropzone.maxFilesize = 1024;
+    var flyerPhotoDropZone = new Dropzone('#my-dropzone', {
+        paramName: "file",
+        url: 'file-upload.php',
+        maxFilesize: 1024, // MB
+        'autoProcessQueue': false,
+        'addRemoveLinks': true,
+        acceptedFiles: ".png,.jpg,.gif,.pdf,.docx,.doc,.zip,.rar,.txt,.xls,.xlsx",
+
+        removefile: function(x) {
+            console.log(x);
+        },
+        init: function() {
+            var that = this,
+       
+
+            uploadBtn = document.getElementById('submitallfiles');
+            uploadBtn.addEventListener("click", function() {
+                var nFiles = flyerPhotoDropZone.getQueuedFiles().length;
+                that.options.parallelUploads = nFiles;
+                that.processQueue();
+                $('#allFiles').DataTable().ajax.reload();
+            });
+
+            this.on("maxfilesexceeded", function(file) {
+                alert("You have exceeded the maximum files allowed !");
+                this.removeFile(file);
+            });        
+          
+
+            this.on("successmultiple", function(files, response) {
+
+                if (response.status == true) {
+                    window.location.replace(response.redirect);
+                } else {
+                    $.each(response.error, function(key, value) {
+                        $('[name="' + key + '"]').parent().append(getErrorHtml(response[key], value));
+                    });
+                }
+            });
+        },
+    });
+});
+
+        $('#allFiles').on('click',"#deletefile,#editfile",function(){
+            var row=$(this).closest('tr');
+            var rowData=$('#allFiles').DataTable().row(row).data();
+            $('.form-horizontall').find('input').each(function(){
+              $(this).css("border-color", "#909090");
+            });
+         if(rowData==null){
+            row=$(this).parent().closest('td').parent().prev();
+            var rowData=$(this).parent().closest('td').parent().prev();
+            rowData= $('#allFiles').DataTable().row(rowData).data();
+            }
+          
+            $(".number-alerts-1").html("");
+            $(".number-alerts-2").html("");
+            $($(this).data('target')).modal('show');
+            $('.modal').data('id',rowData.id)
+            var selected = $('#eneighborhood option:contains("' + rowData.neighborhood + '")').val();
+            $('.eneighborhood').val(rowData.neighborhood);
+            $('.datepicker').datetimepicker({
+             format: 'DD-MM-YYYY'
+               });
+            $('.ePostedDate').val(rowData.PostedDate);
+            $('.eDisplayName').val(rowData.DisplayName);
+          
+          
+              currentPostedDate = $(".ePostedDate").parent().find("input").val();
+
+
+        });
+
+
+          var visible = 0;
+          $('.evisible').on('change', function() {
+           var hiddenField = $('#cmn-toggle-4'),
+            val = hiddenField.val();
+            hiddenField.val(val === "false" ? "true" : "false");
+            });
+
+          $('#edit').on('click','#editfile',function(){
+          var modal =$(this).closest('.modal');
+          var File_id=modal.data('id');
+         
+            if( $('.evisible').val() == "true"){
+                 visible =1 ;
+                }else {
+                 visible = 0 ;
+            }
+
+
+          var values = getValuesFromForm(".form-horizontall")
+          if(modalValidityCheck(values,'.form-horizontall')){   
+         var edPostedDate = values.ePostedDate.split("-").reverse().join("-");
+         var params = { id: File_id,Neighborhood: values.eneighborhood, PostedDate:edPostedDate
+          ,DisplayName:values.eDisplayName,visible:parseInt(visible),csrf_token: encodeURIComponent(csrf_token) };
+             var url = site['uri']['public'] + "/EditFile/?";
+          var req1 = $.ajax({
+                type: "POST",
+                url: url,
+                data: params,
+                beforeSend: function() {
+                    $('.loader-modal-lg').modal('show');
+                },
+            }).done(function(data){
+                    $('#edit').modal("hide");
+                    $('.loader-modal-lg').modal('hide');
+                    $('#allFiles').DataTable().ajax.reload();
+                    notifyMe();
+                 
+            })
+             .fail(function(err){
+                    $('.loader-modal-lg').modal('hide');
+                    notifyMe1();
+                  
+                    console.log("err",err)
+               });
+
+          }
+      });
+
+      $(".ePostedDate").parent().on("dp.show", function(e) {
+    //set date on date picker open
+     var date = currentPostedDate.split("-").reverse().join("-");
+     $(".ePostedDate").parent().data("DateTimePicker").date(date);
+    });
+
+function notifyMe() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "File Has been Edited",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "File Has been Edited",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+function notifyMe1() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "Failed to Edit File",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "Failed to Edit File",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+      $('#allFiles').on('click', '#deletefile', function() {
+    $("#delete.modal").modal('show');
+    var FileId = $(this).closest('tr').data('id');
+    var fileName = $(this).closest('tr').data('file_name');
+    
+    $('#delete').on('click', '#deletefile', function() {
+        console.log(FileId);
+        console.log(fileName);
+        var params = {
+            id: FileId,FileName: fileName,
+            csrf_token: encodeURIComponent(csrf_token)
+        };
+        var url = site['uri']['public'] + "/deletefile/?";
+        var req1 = $.ajax({
+                type: "DELETE",
+                url: url,
+                data: params,
+                beforeSend: function() {
+                    $('.loader-modal-lg').modal('show');
+                },
+            }).done(function(data) {
+                $('#delete').modal("hide");
+                $('.loader-modal-lg').modal('hide')
+                $('#allFiles').DataTable().ajax.reload();
+                notifyMe2();
+               
+            })
+            .fail(function(err) {
+                $('.loader-modal-lg').modal('hide')
+                console.log("err", err);
+                notifyMe3();
+              
+            });
+
+
+    });
+});
+function notifyMe2() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "File Has been Deleted",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "File Has been Deleted",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+function notifyMe3() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "Failed to delete File",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "Failed to delete File",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+    function getValuesFromForm(formSelector){
+        // get all the inputs into an array.
+        var inputs = $(formSelector+' :input');
+        var values = {};
+        inputs.each(function() {
+            values[$(this).attr('id')] = $(this).val();
+        });
+        return values;
+    }
+
+    function modalValidityCheck(values, formSelector) {
+    var flag = true;
+    var target = $(formSelector);
+    // checks for empty fields when required flag is true
+    target.find('input').filter('[required]').each(function() {
+
+        if (!$(this)[0].checkValidity()) {
+            $(this).css("border-color", "red");
+            flag = false;
+        } else {
+            $(this).css("border-color", "#909090");
+
+        }
+    })
+    return flag
+}
+
+   function formatDateToYYYYMMDD(date){
+      if(!date instanceof Date){
+        var dateWithoutTime=date.split(" ")[0];
+        date=new Date(dateWithoutTime);
+      }else{
+        date=new Date(date);
+      }
+      return moment(date).format("YYYY-MM-DD");
+    }
+   
+
+     $('.datepicker').datetimepicker({
+                    showTodayButton: true,
+                    allowInputToggle: true,
+                    useCurrent: true,
+                    focusOnShow: true,
+                    icons: {
+                        today: 'glyphicon glyphicon-calendar'
+                    },
+                    format: 'DD-MM-YYYY'
+                });
+function getErrorHtml(key, value) {
+    var html = '<ul id="errors-' + key + '" class="errors">';
+    html += '<li>' + value + '</li>';
+    html += '</ul>';
+    return html;
+}
+
+</script>
+{% endblock %}

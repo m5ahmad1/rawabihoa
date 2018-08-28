@@ -1,0 +1,325 @@
+.label.label-format{
+    display: block;
+    font-size: 14px;
+    padding: 8px;
+    margin-right: 6px;
+}
+.margin-right-5px{
+    margin-right: 5px;
+}
+.btn-width{
+    width:180px;
+}
+.btn-width-120{
+    width:140px;
+}
+.available-filter-style{
+    display: inline;
+    float: right;
+}
+div.dataTables_wrapper div.dataTables_filter label {
+    float: left;
+    padding-bottom: 5px;
+}
+.filter-by {
+    display: inline;
+    width: inherit;
+    margin-left: 5px;
+    font-weight: 100;
+}
+
+.modal .no-padding{
+    padding:0;
+}
+.form-control.required-input{
+    border: 2px solid red;
+}
+/*css styles for unit page modal*/
+.modal.fade.reservation-modal-lg.in{
+    width:40%;
+    left: 45%;
+    top:250px;
+}
+.modal.fade.contract-modal-lg.in{
+    width:40%;
+}
+.modal-dialog.modal-lg{
+    width: 100%;
+    margin: 0;
+}
+.right-side-style{
+    float: right;
+    text-align:right;
+}
+.rtl-direction{
+  direction:rtl;
+  max-height: 200px;
+  min-height: 200px;
+  overflow-y: auto;
+}
+.display-none{
+  display:none;
+}
+@media only screen 
+  and (min-device-width: 768px)
+  and (max-device-width:1024px){
+ .modal.fade.contract-modal-lg.in{
+    width:60%;
+    left: 50%; 
+}
+}
+@media only screen 
+  and (max-device-width: 768px){
+ .modal.fade.contract-modal-lg.in{
+    width:100%;
+    left: 10%; 
+}
+}
+@media only screen 
+  and (min-device-width: 768px)
+  and (max-device-width:1024px){
+ .modal.fade.reservation-modal-lg.in{
+    width:60%;
+    left: 50%; 
+}
+}
+@media only screen 
+  and (max-device-width: 768px){
+ .modal.fade.reservation-modal-lg.in{
+    width:100%;
+    left: 10%; 
+}
+}
+/*
+  spinner overlay
+*/
+.overlay{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  background-color: rgba(0,0,0,0.5); /*dim the background*/
+}
+
+/*google chart style*/
+.chart {
+  width: 100%; 
+  min-height: 450px;
+}
+.z-index-2{
+    z-index: 2;
+}
+.padding-top-5px{
+    padding-top: 5px;
+}
+.padding-left{
+  padding-left:12px;
+}
+/*
+  datatable responsive styles (-webkit-min-device-pixel-ratio: 2)
+*/
+@media only screen 
+  and (max-device-width: 1024px){
+  .available-filter-style{
+    width: 100%;
+    margin: 48px auto auto;
+    text-align: left;
+  }
+  #unitTable_filter.dataTables_filter label{
+    width: 100%;
+    text-align: left;
+    margin-top: 5px;
+  }
+  #unitTable li:last-child .dtr-title{
+    display: block;
+  }
+  /*panel dashboard*/
+  .panel-heading .huge {
+    font-size: 26px;
+  }
+  .form-control.width-12 {
+    width: 20%;
+    display: inline;
+
+  }
+  .available-filter{
+    text-align:left;
+  }
+}
+/*Css For Transaction Table*/
+@media only screen 
+  and (max-device-width: 1024px){
+  .available-filter-style{
+    width: 100%;
+    margin: 48px auto auto;
+    text-align: left;
+  }
+  #allTransaction th{
+    background-color: #0e1a35;
+  }
+  #allTransaction_filter.dataTables_filter label{
+    width: 100%;
+    text-align: left;
+    margin-top: 5px;
+  }
+  #neighborhoodTable li:last-child .dtr-title{
+    display: block;
+  }
+   #neighborhoodTable th{
+    background-color: #0e1a35;
+  }
+  #neighborhoodTable_filter.dataTables_filter label{
+    width: 100%;
+    text-align: left;
+    margin-top: 5px;
+  }
+  #neighborhoodTable li:last-child .dtr-title{
+    display: block;
+  }
+  /*panel dashboard*/
+  .panel-heading .huge {
+    font-size: 26px;
+  }
+  .form-control.width-12 {
+    width: 20%;
+    display: inline;
+
+  }
+  .available-filter{
+    text-align:left;
+  }
+}
+@media only screen 
+  and (min-device-width: 1024px){
+  .form-control.width-12 {
+    width: 8.5%;
+  }
+}
+.panel-green-dashboard .panel-heading{
+    color: #fff;
+    background-color: #5cb85c;
+    border-color: #5cb85c;
+}
+.panel-green-dashboard.panel{
+    border-color: #5cb85c;
+}
+.currency-text{
+  color:#c9302c;
+}
+/*bootstrap multiselect scroll*/
+.multiselect-container.dropdown-menu{
+    max-height: 150px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.label-lg{
+  font-size: 14px;
+}
+.label-block{
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@font-face {
+    font-family: 'Yakout Linotype Light';
+    src: url(../fonts/yakout-linotype-light-regular-016008e90c6deab40edff9dd7e076703.ttf);
+    font-weight: 300;
+    font-size: 46px !important;
+    font-style: normal;
+}
+
+#contractsForm,#contractsForm h2{
+    font-family: 'Yakout Linotype Light',serif;
+}
+.clr{
+    clear: right;
+}
+.width-88{
+    width: 88%;
+}
+@media screen and (max-width: 768px){
+    .width-88{
+        width: 100%;
+    }
+}
+.border-bottom{
+    border-bottom: 3px solid #dddddd;
+    margin-bottom: 1em;
+}
+/*Added by Majf Fouqhaa*/
+/*Define a base for em units*/
+body{
+    font-size: 16px;
+}
+/*Getting red of margin-top which associated with contract-modal-lg*/
+#contract-lg-modal{
+    margin-top: 0 !important;
+}
+/*{#Giving some breath for inline elements#}*/
+.form-inline label{
+    line-height: 200%;
+}
+/*Modify textarea to appear sharp*/
+.form-group textarea{
+    resize: none;
+    min-height: 5em;
+}
+/*{#Custom Classes#}*/
+.special-green{
+    color:#71BF45;
+}
+.contracts-form h2, .contracts-form h3{
+    margin-bottom: 1em;
+}
+.contracts-select{
+    font-size: 1.25em;
+    height: auto;
+    padding: 0.5em 1em;
+}
+.margin-1{
+    margin: 0.4em;
+}
+.margin-50{
+    margin-bottom: 50px;
+}
+.width-15{
+    display: inline-block;
+    width: 15% !important;
+}
+.dIcon{
+  display: inline-block;
+  position: relative;
+  width: 20%;
+  margin: 0 0.25em 0 0.4em;
+}
+.width-100{
+  width: 100% !important;
+}
+.fa-usd{
+  position: absolute;
+  top: 30%;
+  left: 0%;
+}
+.center-item{
+  margin: 0 auto;
+  display: block;
+}
+@media screen and (max-width: 768px) {
+    .width-15{
+        display: block;
+        width: 100% !important;
+    }
+    .contracts-select{
+        padding: 0.45em;
+    }
+    .dIcon{
+      width: 100%;
+    }
+}
+/*Added by Majf Fouqhaa*/
+/*Define a base for em units*/

@@ -1,0 +1,10 @@
+{
+    "email" : {
+        "validators" : {
+            "required" : {
+                "message" : "ACCOUNT_SPECIFY_EMAIL"
+            }
+        }
+    }
+   
+}

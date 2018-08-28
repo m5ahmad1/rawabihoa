@@ -1,0 +1,400 @@
+{% extends "layouts/layout-dashboard.twig" %} {% set page_group = "units" %} {# Set page properties (page.*) here. #} {% block page %} {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, but BEFORE the page itself is rendered. #} {% set page = page | merge({ "title" : "Year Payment", "description" : "" }) %} {{ parent() }} #} {% endblock %} {% block content %}
+<link rel="stylesheet" href="{{site.uri.public}}/css/bootstrap-datepicker.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/responsive.dataTables.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/dataTables.bootstrap.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/datepicker.css" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.min.css" />
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.min.css" />
+    <style>
+         @media only screen and (max-width: 768px), (min-width: 768px) and (max-width: 1024px) {
+            .tablesorter td:nth-of-type(1):before {
+                content: "Year";
+            }
+            .tablesorter td:nth-of-type(2):before {
+                content: "Fixed monthly bill";
+            }  
+    }
+    </style>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-primary">
+            <div id="settings-alerts" class="create-unit-alert">
+            </div>
+                          <div class="panel-heading ">
+                         <div class='pull-right users-btn-panel' style="padding-top:20px">
+                            <button type="button" data-toggle="modal" id="createButton" class="btn btn-success"><i class="fa fa-plus-square"></i> Add New Fixed Bill</button>
+                        </div>
+                    </div>
+             <div class="container-fluid">
+            <h2>Year Payments</h2>
+             <div class="panel panel-default">
+            <div class="panel-body">
+             <div class="panel-body no-padding">
+                <div class="table-responsive">
+                <table id="yearpayment" class="tablesorter table table-bordered table-hover table-striped tablesorter-bootstrap dataTables cellspacing=0 ">
+                         <thead>
+                        <th class="all">Year</th>
+                        <th class="all">Fixed monthly bill</th>
+
+                    </thead>
+                </table>
+              </div>
+            </div>
+          </div>
+          </div>
+            </div>
+         </div>
+      </div>
+     </div>
+      {#<div class="col-xs-1 col-md-1 col-md-offset-1"></div> #}
+    <div class="modal fade" style="overflow: visible;" id="create" role="dialog" aria-labelledby="edit" aria-hidden="true" style="font-family:'Bree Serif'">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                <h4 class="modal-title custom_align" id="Heading">Create New Fixed Bill</h4>
+            </div>
+     <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-1"></div>
+                    <div class="col-xs-10">
+ <form class="form-horizontal" role="form">
+                     
+                           <div class="form-group">
+                                <label for="dateofres">Year</label>
+                                <div class='input-group date datepicker datepicker2'>
+                                    <input type='text' class="form-control dateofres" id="dateofres" required/>
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                    </span>
+                                </div>
+                            </div>
+                               <div class="form-group">
+                                <label for="bill">Fixed Bill</label>
+                                <input class="form-control bill" list="ownersList" id="bill" type="" required="" />
+                        
+                                <div class="name-alerts" style="color:red"></div>
+                            </div>
+                        </form>
+                          <div class="col-xs-1"></div>
+                </div>
+            </div>
+            <div class="modal-footer ">
+                <button type="button" id="Createunit" class="btn btn-primary">Create</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+                     
+
+     
+    {#
+    <div class="col-xs-1 col-md-1 col-md-offset-1"></div> #}
+</div>
+
+{% endblock %} {% block page_scripts %}
+{% include 'components/common/js-snippets/user-table-columns.twig' %}
+
+<script type="text/javascript">
+    $(document).ready(function(){
+  $(".btn").click(function(){
+    $("#myModal").modal('show');
+  });
+});
+
+    csrf_token = $("meta[name=csrf_token]").attr("content");
+
+    // config datatable
+    $('#unitTable').DataTable({
+        'ajax': {
+            "type": "Get",
+            "url": site['uri']['public'] + '/getUnits/updateFixedBill/',
+            "dataSrc": function(json) {
+                tableData = json;
+                console.log("tableData: ", tableData);
+                return json;
+            }
+        },
+        "paging": false,
+        "ordering": true,
+        "info": false,
+        "searching": false,
+        //"responsive": true,
+        //"pageLength":10,
+
+        columns: [
+            //{ "data": "building" },
+            { "data": "Year" },
+            { "data": "fixedBill" },
+           
+            { "data": null, "defaultContent": '<div class="btn-group"><button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Actions<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li><a href="#"  id="Createunit" data-title="Createunit" data-target="#Create" data-placement="top" data-toggle="tooltip"><i class="fa fa-trash-o"></i> Create unit</a></li><li><a href="#" id="editunit" data-title="Edit" data-target="#edit"  data-toggle="tooltip" ><i class="fa fa-edit"></i> Edit Unit</a></li></ul></div>' }
+        ],
+        fnRowCallback: function(row, data, iDisplayIndex, iDisplayIndexFull) {
+            // Set data-id=id on the row
+            $(row).data('id', data.id);
+        }
+    });
+
+
+
+$('#createButton').on('click', function() {
+    $('#create').modal("show");
+    var target = $('.form-horizontal');
+    target.closest('form').find("input[type=text],input[type=number]").val("");
+    $('.datepicker2').datetimepicker({
+        locale: 'en',
+    debug: true,
+    defaultDate: new Date(),
+    dayViewHeaderFormat: 'YYYY',
+    format: 'YYYY',
+    viewMode: 'years',
+    allowInputToggle: true
+        });
+    $('.form-horizontal').find('input').each(function() {
+        $(this).css("border-color", "#909090");
+    });
+    $(".name-alerts-en").html("");
+    $(".name-alerts-ar").html("");
+    $(".number-alerts-1").html("");
+    $(".number-alerts-2").html("")
+
+});
+
+
+    function getCalenderDate() {
+    var date = $('#dateFilter').data("DateTimePicker").date().toDate(),
+        year = date.getFullYear(),
+        d = new Date(year),
+        day = d.getDate();
+    return year;
+    }
+
+
+  $(function () {
+
+                var payTable = $('#yearpayment').DataTable({
+                    'ajax': {
+                        "type": "Get",
+                        "url": site['uri']['public'] + '/getUnits/getFixedBill/all/',
+                        "dataSrc": function (json) {
+                        return json;
+                        }
+                    },
+                    "language": {
+                        "processing": '<i class="fa fa-circle-o-notch fa-spin"></i> Fetching records...',
+                        "emptyTable": "No records found"
+                    },
+                    "processing": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "ordering": true,
+                    "info": false,
+                    "searching": true,
+                    "responsive": true,
+                    "pageLength": 10,
+                    "columnDefs": [
+                        {
+                                "targets": [
+                                    0,
+                                    1
+                                   
+                                    
+                                ],
+                            "className": "pointandclick",
+                            "createdCell": function (td, cellData, rowData, row, col) {
+                                $(td).attr('data-toggle', 'tooltip');
+                                $(td).attr('title', 'Show full transaction');
+
+                                    if (col === 2) {
+
+                                        if ($(td).text() == "") {
+
+                                            $(td).text("Not Assigned");
+                                        }
+                                    }
+                                    else if (col === 6) {
+
+                                        if ($(td).text() == "") {
+
+                                            $(td).text("-");
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+
+                        columns: [
+                                {
+                                    "data": "year"
+                                }, {
+                                    "data": "billAmount"
+                                }
+                        ],
+
+                        fnRowCallback: function (row, data, iDisplayIndex, iDisplayIndexFull) {
+                            $(row).data('id', data.id);
+                        }
+                    });
+
+                    payTable.order([1, 'desc']);
+
+             
+
+                    $('#yearpayment tbody').on('click', 'tr', function () {
+
+                        var rowData = payTable.row(this).data();
+                        var uCode = rowData.year;
+                        var hood = rowData.billAmount;
+                      
+                        var transDate = rowData.admin_transaction_date;
+ 
+
+                        showInfo("Full Transaction Details, " + transDate, 
+                        `
+                            Year: 
+                        ` + Year +
+                        `<br>
+                            billAmount: 
+                        ` + billAmount 
+                         
+                        )
+                       
+                    });
+
+                    
+
+                    $('tbody').on('mouseenter', 'tr', function () {
+                        $(this).addClass("hover");
+                    });
+
+                    $('tbody').on('mouseleave', 'tr', function () {
+                        $(this).removeClass("hover");
+                    });
+
+                });
+
+function notifyMe1() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "Fixed Bill Has not been Deleted",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "Fixed Bill Has not been Deleted",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+        // $(".saveBill").on('click',function(){
+
+        // });
+    // });
+
+    //insert new Fixed Bill
+    function updateFixedBill(fixedBill) {
+    	console.log(fixedBill);
+        $.ajax({
+                "url": site['uri']['public'] + '/getUnits/updateFixedBill/',
+                data:fixedBill,
+                type: "POST",
+            })
+            .done(function(data) {
+                var billId = data;
+
+                $('#yearPayment tr').last().attr('data-billId', billId);
+                notifyMe2();
+               
+
+            }).fail(function(data) {
+            notfiyMe3();
+              
+
+            });
+    }
+    function notifyMe2() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "Year Payment Table Has  been updated",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "Year Payment Table Has  been updated",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+function notifyMe3() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "Year Payment Table Has not been updated",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "Year Payment Table Has not been updated",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+
+              
+         
+</script>
+{% endblock %}

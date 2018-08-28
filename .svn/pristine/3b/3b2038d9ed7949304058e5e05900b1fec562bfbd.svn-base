@@ -1,0 +1,87 @@
+{% extends "layouts/layout-dashboard.twig" %} {% set page_group = "units" %} {# Set page properties (page.*) here. #} {% block page %} {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, but BEFORE the page itself is rendered. #} {% set page = page | merge({ "title" : "Upload Units", "description" : "" }) %} {{ parent() }} #} {% endblock %} {% block content %}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-primary">
+          <div class="container-fluid">
+            <h2>Upload Units</h2>
+             <div class="panel panel-default">
+                 <div class="panel-body">
+        <div class="form-group">
+    <h4> Download the template file for inserting the new units </h4>
+    <a href="{{site.uri.public}}\upload_units.xlsx" style="color:blue; font-size:20px;"> upload_units.xlsx </a>
+
+     <form action="{{site.uri.public}}\insertunits.php" method="post"  enctype="multipart/form-data">
+            <h4 class="form-group">Upload the edited version of the upload_units.xlsx file</h4>
+           <input type="file" name="userfile" id= "userfile1"   accept=".xlsx" >
+  
+           <input type="submit" name="upload" id="upload"  class="btn btn-success" disabled>
+         </form> 
+         </div>   
+        </div>
+     </div>
+
+    </div> 
+
+      <div class="modal fade hint-modal-lg" data-backdrop="static" data-keyboard="true" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="row ">
+                    <div class="col-xs-offset-1 col-xs-10 ">
+                        <h1>Hint!</h1>
+                    </div>
+                </div>
+                <div class="row ">
+                    <div class="col-xs-offset-1 col-xs-10 ">
+                        <h4>Please select suitable file with extension [.xlsx].
+                        </h4>
+                    </div>
+                </div>
+                <div class="row lead">
+                    <div class="col-xs-offset-2 col-xs-9 ">
+                        <div class="pull-right">
+                            <button class="btn  btn-danger" id="cancelReservationBtn" onclick="hideHintModal()">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>   
+
+  </div>
+ </div>
+
+</div>
+
+{% endblock %} 
+{% block page_scripts %}
+<script>
+$(document).ready(function () {
+
+$('input[type=file]').change(function () {
+     jQuery("#upload").prop('disabled', false);
+var val = $(this).val().toLowerCase();
+var regex = new RegExp("(.*?)\.(xlsx)$");
+
+
+ if(!(regex.test(val))) {
+    $(this).val('');
+     $('.hint-modal-lg').modal("show");
+      $('#upload').attr('disabled', true);
+      }
+      else{
+       $('.hint-modal-lg').modal("hide");
+       $('#upload').attr('disabled', false);
+       }
+    });
+});
+
+function hideHintModal(){
+       $('.hint-modal-lg').modal("hide");
+       $('#upload').attr('disabled', false);
+   }
+   
+
+
+</script>
+{% endblock %}

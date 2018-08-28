@@ -1,0 +1,274 @@
+{% extends "layouts/layout-dashboard.twig" %} 
+{% set page_group = "about_us" %}
+{% block page %} 
+    {% set page = page | merge({ "title" : "About Us", "description" : "" }) %}
+    {{ parent() }}
+{% endblock %} 
+{% block content %}
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="panel panel-primary">
+                <div class="container-fluid">
+                    <h2>About Us</h2>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                        <div class="se-pre-con"></div>
+                            {% if checkAccess('uri_users') %}
+                                <div class="container-fluid">
+                                    <div class="buttons pull-right">
+                                        <button id="edit" type="button" class="btn btn-primary">
+                                            Edit Page
+                                        </button>
+                                        <button id="cancel" type="button" class="btn btn-danger">
+                                            Cancel
+                                        </button>
+                                        <button id="save" type="button" class="btn btn-success">
+                                            Save
+                                        </button>
+                                        <button id="editMembers" type="button" class="btn btn-primary">
+                                            Edit Members
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div id="alert-success" class="alert alert-success alert-dismissable">
+                                <strong>Success!</strong> Content edited succesfully.
+                            </div>
+                            <div id="alert-danger" class="alert alert-danger alert-dismissable">
+                                <strong>Error!</strong> Something went wrong. Content not edited succesfully.
+                            </div>
+                            <div id="wrongTypeAlert" class="alert alert-danger alert-dismissable">
+                                <strong>Error!</strong> Unsupported type.
+                            </div>
+                            <div id="motto" class="jumbotron vertical-center">
+                                <div class="inside">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <h2 id="headmotto" class="heading">
+                                            </h2>
+                                            <div id="detailmotto" class="details">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="image">
+                                                <form id="mottoForm">
+                                                    <img id="imgmotto" class="img-fluid center-block loading" alt="">
+                                                    <input id="fileinput" type="file" style="width: 0px; height: 0px;  overflow: hidden;"/>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="dashStyle">
+                            <div id="process" class="jumbotron vertical-center">
+                                <div class="inside">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <h2 id="headprocess" class="heading">
+                                            </h2>
+                                        </div>
+                                    </div>
+                                    {% if count > 0 %}
+                                        {% for i in range(1, count) %}
+                                            {% if (i - 1) % 3 == 0 %}
+                                                <div class="row row-eq-height">
+                                            {% endif %}
+                                                    <div class="col col-sm-4">
+                                                        <div class="image">
+                                                            <img id={{'img' ~ i}} class="img-fluid loading" alt="">
+                                                        </div>
+                                                        <h2 id={{'name' ~ i}} class="heading">
+                                                        </h2>
+                                                        <h2 id={{'member' ~ i}} class="heading">
+                                                        </h2>
+                                                        <div class="details">
+                                                            <p id={{'desc' ~ i}}>
+                                                            </p>
+                                                        </div>
+                                                        <div class="more">
+                                                            <a id={{'btn' ~ i}} href="">View more <i class="fa fa-angle-double-right"></i></a>
+                                                        </div>
+                                                    </div>
+                                            {% if i % 3 == 0 %}
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="modal fade" id="infoModal" role="dialog">
+                                <div class="modal-content">
+                                    <div id="infomodalheader" class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                                        <h4 id="modalheader" class="modal-title"></h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p id="modalresponse"></p>
+                                        <img id="uploadingInfoImg" style="display:none" alt="" class="center-block" src={{site['uri']['public'] ~ "/images/loaders/loader2-64x/Preloader_1.gif"}}>
+                                        <h4 id="uploadingInfotext" style="display:none" class="text-center">Uploading...</h4>
+                                    </div>
+                                    <div id="infomodalfooter" class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="dashStyle">
+                    </div>
+                </div>
+            </div>    
+        </div>
+    </div>
+{% endblock %} 
+{% block page_scripts %}
+    <script>
+        $("body").css({"position": "fixed", "overflow-y": "scroll"});
+        function imageIsLoaded(e) {
+            $('#imgmotto').attr('src', e.target.result);
+        }
+        function boldText(text) {
+            var bold = /\*\*(\S(.*?\S)?)\*\*/gm;
+            var html = text.replace(bold, '<strong>$1</strong>');            
+            return html;
+        }
+        function showUploadLoading() {
+            $('#uploadingInfoImg').show();
+            $('#uploadingInfotext').show();
+            $('#infomodalheader').hide();
+            $('#infomodalfooter').hide();
+            $('#modalresponse').hide();
+            $('#infoModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+        function hideUploadLoadingAndShowInfo(textHeader, textBody) {
+            $('#uploadingInfoImg').hide();
+            $('#uploadingInfotext').hide();
+            $('#infomodalheader').show();
+            $('#infomodalfooter').show();
+            $('#modalresponse').show();
+            $("#modalheader").text(textHeader);
+            $("#modalresponse").html(textBody);
+            $('#infoModal').modal({
+                backdrop: true,
+                keyboard: true,
+            });
+        }
+        $(function() {
+            var orginalImageSrc = "";
+            var orginalPageTextHTML = [];
+            var fromDB = JSON.parse("{{heads}}".replace(/&quot;/g, '"'));
+            var count = {{count}};
+            csrf_token = $("meta[name=csrf_token]").attr("content");
+            $.get(site['uri']['public'] + '/about-us/content', function(data) {
+                var contentFromDB = $.parseJSON(data);
+                var parsed = $.parseJSON(contentFromDB[0].value);
+                $.each($("#motto .heading,#motto .details, #headprocess"), function (index, item) {
+                    item.innerHTML = parsed[index];
+                });
+                orginalImageSrc = site['uri']['public'] + "/" + contentFromDB[1].value;
+                $("#imgmotto").attr("src", orginalImageSrc);
+                $(".se-pre-con").fadeOut("slow");
+                $("body").css({"position": "static", "overflow-y": "auto"});
+            });
+            for(let i = 1; i <= count; i++) {
+                $("#img" + i).attr("src", site['uri']['public'] + "/" + fromDB[i - 1].profile_pic_path);
+                $("#desc" + i).text(fromDB[i - 1].description);
+                $("#name" + i).text(fromDB[i - 1].name);
+                $("#member" + i).text(fromDB[i - 1].membership_type.replace(/\b\w/g, function(l){ return l.toUpperCase() }) + " of " + fromDB[i - 1].neighborhood_en);
+                $("#btn" + i).on("click", function() {
+                    $(this).removeAttr("href");
+                    window.location.href = site['uri']['public'] + '/about-us/' + fromDB[i - 1].neighborhood_en;
+                });
+            }
+            $("#fileinput").change(function() {
+                var file = this.files[0];
+                var imagefile = file.type;
+                var match= ["image/jpeg","image/png","image/jpg"];
+                if(!((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]))) {
+                    $('#fileinput').val('').clone(true);
+                    $("#modalheader").text("Server Response");
+                    $("#modalresponse").html('<strong style="color:red">Error!</strong> Unsupported Type');
+                    $("#infoModal").modal("toggle");
+                    return false;
+                }
+                else {
+                    var reader = new FileReader();
+                    reader.onload = imageIsLoaded;
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+            $("#edit").on( "click", function() {
+                $("#edit").hide();
+                $("#save,#cancel").show();
+                $("#motto .heading, #motto .details, #headprocess").attr("contenteditable", "true");
+                $("#motto .img-fluid").css({border: "5px dotted #1d4971", padding: "10px"});
+                orginalPageTextHTML = [];
+                $.each($("#motto .heading,#motto .details, #headprocess"), function (index, item) {
+                    orginalPageTextHTML.push(item.innerHTML);
+                });
+                orginalImageSrc = $("#imgmotto").attr("src");
+            });
+            $("#cancel").on( "click", function() {
+                $("#save,#cancel").hide();
+                $("#edit").show();
+                $("#motto .heading,#motto .details, #headprocess").attr("contenteditable", "false");
+                $("#motto .img-fluid").css({border: "", padding: "0px"});
+                $('#fileinput').val('').clone(true);
+                $("#imgmotto").attr("src", orginalImageSrc);
+                $.each($("#motto .heading,#motto .details, #headprocess"), function (index, item) {
+                    item.innerHTML = orginalPageTextHTML[index];
+                });
+            });
+            $("#save").on( "click", function() {
+                showUploadLoading();
+                $("#save,#cancel").hide();
+                $("#edit").show();
+                $("#motto .heading,#motto .details, #headprocess").attr("contenteditable", "false");
+                $("#motto .img-fluid").css({border: "", padding: "0px"});
+                var pageTextHTML = [];
+                $.each($("#motto .heading,#motto .details, #headprocess"), function (index, item) {
+                    item.innerHTML = boldText(item.innerHTML);
+                    pageTextHTML.push(item.innerHTML);
+                });
+                var toDB = JSON.stringify(pageTextHTML);
+                var params = new FormData();
+                params.append('motto_image', $('#fileinput').prop('files')[0]);
+                params.append('content', toDB);
+                params.append('csrf_token', encodeURIComponent(csrf_token));
+                $('#fileinput').val('').clone(true);
+                $.ajax({
+                    type        : "POST",
+                    url         : site['uri']['public'] + '/about-us/editAboutUs',
+                    data        : params,
+                    processData : false,
+                    contentType : false,
+                }).done(function(data) {
+                    if (data == "done")  {
+                        hideUploadLoadingAndShowInfo("Server Response", '<strong style="color:green">Success!</strong> Content Edited Succesfully.');
+                        return;
+                    }
+                    hideUploadLoadingAndShowInfo("Server Response", data);
+                })
+                .fail(function(err, e1, e2) {
+                    hideUploadLoadingAndShowInfo("Server Response", '<strong style="color:red">Error!</strong> Something Went Wrong. ' + e2);
+                    $('#fileinput').val('').clone(true);
+                    $("#imgmotto").attr("src", orginalImageSrc);
+                    $.each($("#motto .heading,#motto .details, #headprocess"), function (index, item) {
+                        item.innerHTML = orginalPageTextHTML[index];
+                    });
+                });
+            });
+            $("#imgmotto").on("click", function() {
+                if($("#edit").is(":hidden")) {
+                    $('#fileinput').trigger('click');
+                }
+            });
+            $('#editMembers').on('click', function() {
+                window.location.href = site['uri']['public'] + '/about-us/members'
+            });
+        }); 
+    </script>
+{% endblock %}

@@ -1,0 +1,121 @@
+<div class="sidebar-nav navbar-collapse">
+    <ul class="nav" id="side-menu">
+     <!--   <li class="sidebar-search">
+            <div class="input-group custom-search-form">
+                <input type="text" class="form-control" placeholder="Search...">
+                <span class="input-group-btn">
+                <button class="btn btn-default" type="button">
+                    <i class="fa fa-search"></i>
+                </button>
+                </span> 
+            </div>
+        </li> -->
+        {% if checkAccess('uri_unit')%}
+        <li>
+            <a href="{{site.uri.public}}/unit"><i class="fa fa-university"></i> Units Payments</a>
+        </li>
+        {% endif %}
+
+        {% if user.primary_group_id == 1%}
+            <li>
+              <a href="{{site.uri.public}}/payments"><i class="fa fa-paypal"></i> &nbsp;Payments / Bills</a>
+            </li>
+         {% endif %}
+
+        {% if checkAccess('uri_site_settings') or checkAccess('uri_manage_groups') %}
+        <li>
+            <a href="#"><i class="fa fa-wrench fa-fw"></i> {{ translate("MENU_CONFIGURATION") }}<span class="fa arrow"></span></a>
+            <ul class="nav nav-second-level collapse" aria-expanded="false">
+                <!-- {% if checkAccess('uri_site_settings') %}
+                <li>
+                    <a href="{{site.uri.public}}/config/settings"><i class="fa fa-globe fa-fw"></i> {{ translate("MENU_SITE_SETTINGS") }}</a>
+                </li>
+                {% endif %} -->
+                {% if checkAccess('uri_users') %}
+                <li>
+                    <a href="{{site.uri.public}}/users"><i class="fa fa-users fa-fw"></i> {{ translate("MENU_USERS") }}</a>
+                </li>
+                {% endif %}
+                <!-- {% if checkAccess('uri_manage_groups') %}
+                <li>
+                    <a href="{{site.uri.public}}/groups"><i class="fa fa-tags fa-fw"></i> {{ translate("MENU_GROUPS") }}</a>
+                </li>
+                {% endif %} -->
+                 <li>
+                    <a href="{{site.uri.public}}/config/mail_config"><i class="fa fa-cogs fa-fw"></i> {{ translate("Mail") }}</a>
+                </li>
+ 
+              </ul> 
+               {% if checkAccess('uri_createunit') %}
+          <li>
+            <a href="{{site.uri.public}}/createunit"><i class="fa fa-plus-square"></i>&nbsp; Units</a>
+        </li>
+        <li>
+            <a href="{{site.uri.public}}/neighborhood"><i class="fa fa-plus-square"></i>
+            &nbsp;Neighborhood</a>
+        </li>
+        {% endif %}
+		
+               
+            <!-- /.nav-second-level -->
+    </li>
+        {% endif %}
+         {% if user.primary_group_id == 2%}
+        <li>
+            <a href="{{site.uri.public}}/yearpayment"><i class="fa fa-calendar"></i>&nbsp; Fixed Year Bill</a>
+        </li>
+    {% endif %}
+
+{#      {% if user.primary_group_id == 2%}
+        <li>
+            <a href="{{site.uri.public}}/alltransaction"><i class="glyphicon glyphicon-modal-window"></i>&nbsp; All Trasaction</a>
+        </li>
+    {% endif %} #}
+
+    {% if user.primary_group_id == 2%}
+        <li>
+            <a href="{{site.uri.public}}/paymentTransaction"><i class="glyphicon glyphicon-modal-window"></i>&nbsp; Trasactions</a>
+        </li>
+    {% endif %}
+
+{#     {% if user.primary_group_id == 2%}
+        <li>
+            <a href="{{site.uri.public}}/billTransaction"><i class="glyphicon glyphicon-modal-window"></i>&nbsp; Bill Trasactions</a>
+        </li>
+    {% endif %} #}
+ 
+ 
+     {% if user.primary_group_id == 2%}
+        <li>
+            <a href="{{site.uri.public}}/uploadUnits"><i class="fa fa-file-excel-o"></i>&nbsp; Upload Units</a>
+        </li>
+    {% endif %} 
+	{% if user.primary_group_id == 2%}
+        <li>
+        <a href="{{site.uri.public}}/UploadFiles"><i class="glyphicon glyphicon-upload">
+        </i>&nbsp; Upload Files</a>
+        </li>
+    {% endif %}
+
+     {% if user.primary_group_id == 1%}
+        <li>
+        <a href="{{site.uri.public}}/SharedFiles"><i class="fa fa-file">
+        </i>&nbsp; Shared Files</a>
+        </li>
+    {% endif %}
+        <li>
+            <a id="about-sidebar-icon" href="{{site.uri.public}}/about-us"><i class="fa fa-info-circle"></i>&nbsp; About Us</a>
+        </li>
+        {% if user.primary_group_id == 1%}
+        <li>
+            <a href="{{site.uri.public}}/ticket"><i class="fa fa-paper-plane"></i>&nbsp; Send Complaint</a>
+        </li>
+        {% elseif  user.primary_group_id == 2%}
+        <li>
+            <a href="{{site.uri.public}}/ticket"><i class="fa fa-paper-plane"></i>&nbsp; Complaints</a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+<!-- /.sidebar-collapse -->
+    

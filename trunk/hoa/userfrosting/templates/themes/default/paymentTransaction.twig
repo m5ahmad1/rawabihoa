@@ -1,0 +1,448 @@
+{% extends "layouts/layout-dashboard.twig" %}
+{% set page_group = "transactions" %}
+{% block page %}
+    {% set page = page | merge({"title": "Transactions", "message": ""}) %}
+    {{ parent() }}
+{% endblock %}
+{% block content %}
+    <style>
+         @media only screen and (max-width: 768px), (min-width: 768px) and (max-width: 1024px) {
+            .tablesorter td:nth-of-type(1):before {
+                content: "Unit Code";
+            }
+            .tablesorter td:nth-of-type(2):before {
+                content: "Hood";
+            }
+            .tablesorter td:nth-of-type(3):before {
+                content: "Owner";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(4):before {
+                content: "Amount";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(5):before {
+                content: "Type";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(6):before {
+                content: "Number";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(7):before {
+                content: "Note";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(8):before {
+                content: "Date";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(9):before {
+                content: "Year";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(10):before {
+                content: "Transaction Date";
+            }
+            #paymentTransTable.tablesorter td:nth-of-type(11):before {
+                content: "Executed By";
+            }
+
+            #billTransTable.tablesorter td:nth-of-type(4):before {
+                content: "Old Amount";
+            }
+            #billTransTable.tablesorter td:nth-of-type(5):before {
+                content: "New Amount";
+            }
+            #billTransTable.tablesorter td:nth-of-type(6):before {
+                content: "Note";
+            }
+            #billTransTable.tablesorter td:nth-of-type(7):before {
+                content: "Month-Year";
+            }
+            #billTransTable.tablesorter td:nth-of-type(8):before {
+                content: "Transaction Date";
+            }
+            #billTransTable.tablesorter td:nth-of-type(9):before {
+                content: "Executed By";
+            }
+    }
+    </style>
+    
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="panel panel-primary">
+                <div class="container-fluid">
+                    <h2>Transactions</h2>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="tabbable"> <!-- Only required for left/right tabs -->
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#tab1" data-toggle="tab">Payment Transactions</a></li>
+                                <li><a href="#tab2" data-toggle="tab">Bill Transactions</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">
+                                <div class="tablepadding" > </div>
+                                    <div class="table-responsive">
+                                        <table id="paymentTransTable" class="tablesorter table table-bordered table-hover table-striped tablesorter-bootstrap dataTables cellspacing=0 ">
+                                            <thead>
+                                                <th class="all">Unit Code</th>
+                                                <th class="all">Hood</th>
+                                                <th class="all">Owner</th>
+                                                <th class="all">Amount</th>
+                                                <th class="all">Type</th>
+                                                <th class="all">Number</th>
+                                                <th class="all">Note</th>
+                                                <th class="all">Date</th>
+                                                <th class="all">Year</th>
+                                                <th class="all">Transaction Date</th>
+                                                <th class="all">Executed By</th>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="tab2">
+                                <div class="tablepadding" > </div>
+                                    <div class="table-responsive">
+                                        <table id="billTransTable" class="tablesorter table table-bordered table-hover table-striped tablesorter-bootstrap dataTables cellspacing=0 ">
+                                            <thead>
+                                                <th class="all">Unit Code</th>
+                                                <th class="all">Hood</th>
+                                                <th class="all">Owner</th>
+                                                <th class="all">Old Amount</th>
+                                                <th class="all">New Amount</th>
+                                                <th class="all">Note</th>
+                                                <th class="all">Month-Year</th>
+                                                <th class="all">Transaction Date</th>
+                                                <th class="all">Executed By</th>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="infoModal" role="dialog">
+        <div class="modal-content">
+            <div id="infomodalheader" class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                <h4 id="modalheader" class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <p id="modalresponse" style="overflow: auto"></p>
+            </div>
+            <div id="infomodalfooter" class="modal-footer">
+                <button id="submit" style="display:none" type="button" class="btn btn-success">Submit
+                    <span class="fa fa-arrow-right"></button>
+                    <button id="dismiss" type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+    {% block page_scripts %}
+        <script>
+            $.validator.setDefaults({debug: true, success: "valid"});
+
+            function showInfo(header, body, size, submit, toggle) {
+                if (size === "big") {
+                    $("#infoModal").addClass("modal-lg");
+                } else {
+                    $("#infoModal").removeClass("modal-lg");
+                }
+                if (submit === true) {
+                    $("#submit").show();
+                    $("#dismiss").text("Cacnel");
+                } else {
+                    $("#submit").hide();
+                    $("#dismiss").text("OK");
+                }
+                $("#modalheader").html(header);
+                $("#modalresponse").html(body);
+                if (toggle !== "notoggle") 
+                    $('#infoModal').modal('toggle');
+            }
+                
+            $(function () {
+
+                var payTable = $('#paymentTransTable').DataTable({
+                    'ajax': {
+                        "type": "Get",
+                        "url": site['uri']['public'] + '/paymentTransaction/all',
+                        "dataSrc": function (json) {
+                        return json;
+                        }
+                    },
+                    "language": {
+                        "processing": '<i class="fa fa-circle-o-notch fa-spin"></i> Fetching records...',
+                        "emptyTable": "No records found"
+                    },
+                    "processing": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "ordering": true,
+                    "info": false,
+                    "searching": true,
+                    "responsive": true,
+                    "pageLength": 10,
+                    "columnDefs": [
+                        {
+                                "targets": [
+                                    0,
+                                    1,
+                                    2,
+                                    3,
+                                    4,
+                                    5,
+                                    6,
+                                    7,
+                                    8,
+                                    9,
+                                    10
+                                ],
+                            "className": "pointandclick",
+                            "createdCell": function (td, cellData, rowData, row, col) {
+                                $(td).attr('data-toggle', 'tooltip');
+                                $(td).attr('title', 'Show full transaction');
+
+                                    if (col === 2) {
+
+                                        if ($(td).text() == "") {
+
+                                            $(td).text("Not Assigned");
+                                        }
+                                    }
+                                    else if (col === 6) {
+
+                                        if ($(td).text() == "") {
+
+                                            $(td).text("-");
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+
+                        columns: [
+                                {
+                                    "data": "rawabicode"
+                                }, {
+                                    "data": "neighborhood_en"
+                                }, {
+                                    "data": "owner_name"
+                                }, {
+                                    "data": "amount"
+                                }, {
+                                    "data": "payment_type"
+                                }, {
+                                    "data": "payment_number"
+                                }, {
+                                    "data": "payment_note"
+                                }, {
+                                    "data": "payment_date"
+                                }, {
+                                    "data": "payment_year"
+                                }, {
+                                    "data": "admin_transaction_date"
+                                }, {
+                                    "data": "admin_name"
+                                }
+                        ],
+
+                        fnRowCallback: function (row, data, iDisplayIndex, iDisplayIndexFull) {
+                            $(row).data('id', data.id);
+                        }
+                    });
+
+                    payTable.order([9, 'desc']);
+
+                var billTable = $('#billTransTable').DataTable({
+                    'ajax': {
+                        "type": "Get",
+                        "url": site['uri']['public'] + '/billTransaction/all',
+                        "dataSrc": function (json) {
+                        return json;
+                        }
+                    },
+                    "language": {
+                        "processing": '<i class="fa fa-circle-o-notch fa-spin"></i> Fetching records...',
+                        "emptyTable": "No records found"
+                    },
+                    "processing": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "ordering": true,
+                    "info": false,
+                    "searching": true,
+                    "responsive": true,
+                    "pageLength": 10,
+                    "columnDefs": [
+                        {
+                                "targets": [
+                                    0,
+                                    1,
+                                    2,
+                                    3,
+                                    4,
+                                    5,
+                                    6,
+                                    7,
+                                    8
+                                ],
+                            "className": "pointandclick",
+                            "createdCell": function (td, cellData, rowData, row, col) {
+                                $(td).attr('data-toggle', 'tooltip');
+                                $(td).attr('title', 'Show full transaction');
+
+                                    if (col === 2) {
+
+                                        if ($(td).text() == "") {
+
+                                            $(td).text("Not Assigned");
+                                        }
+                                    }
+
+                                    else if (col === 5) {
+
+                                        if ($(td).text() == "") {
+
+                                            $(td).text("-");
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+
+                        columns: [
+                                {
+                                    "data": "rawabicode"
+                                }, {
+                                    "data": "neighborhood_en"
+                                }, {
+                                    "data": "owner_name"
+                                }, {
+                                    "data": "bill_old_amount"
+                                }, {
+                                    "data": "bill_new_amount"
+                                }, {
+                                    "data": "bill_note"
+                                }, {
+                                    "data": "bill_year_month"
+                                }, {
+                                    "data": "admin_transaction_date"
+                                }, {
+                                    "data": "admin_name"
+                                }
+                        ],
+
+                        fnRowCallback: function (row, data, iDisplayIndex, iDisplayIndexFull) {
+                            $(row).data('id', data.id);
+                        }
+                    });
+
+                    billTable.order([7, 'desc']);
+
+                    $('#paymentTransTable tbody').on('click', 'tr', function () {
+
+                        var rowData = payTable.row(this).data();
+                        var uCode = rowData.rawabicode;
+                        var hood = rowData.neighborhood_en;
+                        var owner = rowData.owner_name == null ? "Not Assigned" : rowData.owner_name;
+                        var amount = rowData.amount;
+                        var type = rowData.payment_type;
+                        var number = rowData.payment_number;
+                        var note = rowData.payment_note == "" ? "-" : rowData.payment_note;
+                        var date = rowData.payment_date;
+                        var year = rowData.payment_year;
+                        var transDate = rowData.admin_transaction_date;
+                        var execBy = rowData.admin_name;
+
+                        showInfo("Full Transaction Details, " + transDate, 
+                        `
+                            Unit Code: 
+                        ` + uCode +
+                        `<br>
+                            Neighbourhood: 
+                        ` + hood +
+                        `<br>
+                            Owner: 
+                        ` + owner +
+                        `<br>
+                            Amount: 
+                        ` + amount +
+                        `<br>
+                            Type: 
+                        ` + type +
+                        `<br>
+                            Number: 
+                        ` + number +
+                        `<br>
+                            Payment Note: 
+                        ` + note +
+                        `<br>
+                            Payment Date: 
+                        ` + date +
+                        `<br>
+                            Payment Year: 
+                        ` + year +
+                        `<br>
+                            Admin Transaction Date: 
+                        ` + transDate +
+                        `<br>
+                            Excuted By: 
+                        ` + execBy, "big");
+                    });
+
+                    $('#billTransTable tbody').on('click', 'tr', function () {
+
+                        var rowData = billTable.row(this).data();
+                        var uCode = rowData.rawabicode;
+                        var hood = rowData.neighborhood_en;
+                        var owner = rowData.owner_name == null ? "Not Assigned" : rowData.owner_name;
+                        var oldAmount = rowData.bill_old_amount;
+                        var newAmount = rowData.bill_new_amount;
+                        var note = rowData.bill_note == "" ? "-" : rowData.bill_note;
+                        var monthYear = rowData.bill_year_month;
+                        var transDate = rowData.admin_transaction_date;
+                        var execBy = rowData.admin_name;
+                        
+                        showInfo("Full Transaction Details, " + transDate, 
+                        `
+                            Unit Code: 
+                        ` + uCode +
+                        `<br>
+                            Neighbourhood: 
+                        ` + hood +
+                        `<br>
+                            Owner: 
+                        ` + owner +
+                        `<br>
+                            Old Amount: 
+                        ` + oldAmount +
+                        `<br>
+                            New Amount: 
+                        ` + newAmount +
+                        `<br>
+                            Bill Note: 
+                        ` + note +
+                        `<br>
+                            Bill Month-Year: 
+                        ` + monthYear +
+                        `<br>
+                            Admin Transaction Date: 
+                        ` + transDate +
+                        `<br>
+                            Excuted By: 
+                        ` + execBy, "big");
+                    });
+
+                    $('tbody').on('mouseenter', 'tr', function () {
+                        $(this).addClass("hover");
+                    });
+
+                    $('tbody').on('mouseleave', 'tr', function () {
+                        $(this).removeClass("hover");
+                    });
+
+                });
+        </script>
+    {% endblock %}

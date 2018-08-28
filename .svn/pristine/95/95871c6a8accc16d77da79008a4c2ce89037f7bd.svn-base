@@ -1,0 +1,1039 @@
+{% extends "layouts/layout-dashboard.twig" %} {% set page_group = "unit" %} {# Set page properties (page.*) here. #} {% block page %} {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, but BEFORE the page itself is rendered. #} {% set page = page | merge({ "title" : "Units", "description" : "" }) %} {{ parent() }} {% endblock %} {% block content %}
+<link rel="stylesheet" href="{{site.uri.public}}/css/bootstrap-datepicker.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/responsive.dataTables.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/dataTables.bootstrap.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/datepicker.css" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.min.css" />
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.min.css" />
+<link rel="stylesheet" href="{{site.uri.public}}/css/unitindex.css" type="text/css">
+<div class="row no-margin">
+    <div class="col-xs-12 col-md-12 col-sm-12 no-padding" style="float:right;">
+        <div class="panel panel-primary">
+            <div id="settings-alerts" class="payment-alert">
+            </div>
+            <div class="panel-heading">
+                <span class="fa-stack fa-lg">
+                       <i class="fa fa-archive">&nbsp;&nbsp;Payments</i>           
+                    </span>
+            </div>
+            <div class="panel-body no-padding">
+                <div class='table-header'>
+                    <div id='date' class='header-datePicker'>
+                        <label class="col-xs-5 col-md-1 col-sm-4 padding-top-5px padding-left no-padding" for="totalAptsSelect"> Date: </label>
+                        <div class="col-xs-7 col-sm-3 no-padding-right">
+                            <div class='input-group date ' id='dateFilter'>
+                                <input type='text' class="form-control " data-date-view-mode="years" />
+                                <span class="input-group-addon">
+                                      <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {#
+                    <div class='header-monthly-bill'>
+                        <label class="col-xs-5 col-md-2 col-sm-4 padding-top-5px no-padding" for="totalAptsSelect"> Fixed Monthly Bill: </label>
+                        <div class="col-xs-7 col-sm-3 no-padding-right">
+                            <div class='input-group' style='width:100%'>
+                                <input type='text' class="form-control " id="fixed_bill" />
+                                <span class="input-group-addon save-icon" onclick="updateFixedBill()">
+                                      <span class="fa fa-floppy-o" ></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div> #}
+                </div>
+                <table id='billDiv' class='tablesorter table table-bordered table-hover table-striped tablesorter-bootstrap dataTables' cellspacing='0' style='display:block; overflow:auto; border:none;'>
+                    <thead>
+                        <tr>
+                            <th>Unit Code</th>
+                            <th>Owner</th>
+                            <th>Hood</th>
+                            <th>Finance Type</th>
+                            <th>Jan</th>
+                            <th>Feb</th>
+                            <th>March</th>
+                            <th>April</th>
+                            <th>May</th>
+                            <th>June</th>
+                            <th>July</th>
+                            <th>Aug</th>
+                            <th>Sep</th>
+                            <th>Oct</th>
+                            <th>Nov</th>
+                            <th>Dec</th>
+                            <th>Amount due</th>
+                            <th>Total Balance</th>
+                            <th>Remaining</th>
+                            <th>Save</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {#
+    <div class="col-xs-1 col-md-1 col-md-offset-1"></div> #}
+</div>
+{# style for the bill table #}
+<style type="text/css">
+.amount {
+    width: 90px;
+    font-weight: bold;
+}
+
+.status {
+    font-weight: bold;
+}
+
+
+.inputs {
+    width: 100px;
+}
+
+.input {
+    width: 70px;
+    border: none;
+}
+
+.claculationinput {
+    width: 30%;
+}
+</style>
+<!-- table Modal -->
+<div class="modal fade" id="unitTableModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Unit Details 
+                    Info</h4>
+            </div>
+            <div class="modal-body">
+                <div class="panel-body inf-content">
+                    <table class="table table-condensed table-user-information">
+                        <tbody>
+                            <tr>
+                                <td class="no-border">
+                                    <strong>
+                                <span class="glyphicon glyphicon-user  text-primary "></span>    
+                                User Name                                                
+                            </strong>
+                                </td>
+                                <td class="text-primary no-border user-name">
+                                    user name
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                <span class="glyphicon glyphicon-eye-open text-primary"></span> 
+                                Role                                                
+                            </strong>
+                                </td>
+                                <td class="text-primary user-role">
+                                    Admin
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                <span class="glyphicon glyphicon-phone text-primary"></span>
+                                phone                                                
+                            </strong>
+                                </td>
+                                <td class="text-primary user-phone">
+                                    0599965554
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                <span class="glyphicon glyphicon-envelope text-primary"></span> 
+                                Email                                                
+                            </strong>
+                                </td>
+                                <td class="text-primary user-email">
+                                    noreply@email.com
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <strong>
+                    <span class="glyphicon glyphicon-home text-primary"></span> 
+                        Units   
+                        <br>  
+                       
+                    </strong>
+                    <div class="unit-modal-wrapper">
+                        <table class="modal-unit-table table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Rawabi Code</th>
+                                    <th>Neighborhood</th>
+                                    <th>Phone</th>
+                                    <th>Tabu Code</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- on save modal content -->
+<div class="modal fade" id="paymentConfirm" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+            <h4 class="modal-title custom_align" id="Heading">Confirm Payment and save</h4>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class='form-group col-md-6'>
+                    <div class='input-group display-block'>
+                        <label for="amountDue">Amount due</label>
+                        <input id='amountDue' type='text' class='form-control ' name='amountDue' readonly='readonly'>
+                    </div>
+                </div>
+                <div class='form-group col-md-6'>
+                    <div class='input-group display-block'>
+                        <label for="paid">Paid</label>
+                        <input id='paid' type='text' class='form-control ' name='paid' readonly='readonly'>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='form-group col-md-6'>
+                    <div class='input-group display-block'>
+                        <label for="remaining">Remaining</label>
+                        <input id='remaining' type='text' class='form-control ' name='remaining' readonly='readonly'>
+                    </div>
+                </div>
+                <div class='form-group col-md-6'>
+                    <div class='input-group display-block'>
+                        <label for="paymentType">Payment Type</label>
+                        <select class="form-control" id="paymentType">
+                            <option selected="true">Cash</option>
+                            <option>Check</option>
+                            <option>Direct deposit</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='form-group col-md-6'>
+                    <div class='input-group display-block'>
+                        <label for="paymentDate">Payment Date</label>
+                        <input type='text' class="form-control" id="paymentDate" />
+                    </div>
+                </div>
+                <div class='form-group col-md-6'>
+                    <div class='input-group display-block'>
+                        <label id="numberLabel" for="typeNumber">Receipt Number</label>
+                        <input type='text' class="form-control" id="typeNumber" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer ">
+            <button type="button" class="btn btn-success" id="savePayment">Accept</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Decline</button>
+        </div>
+    </div>
+</div>
+<!-- delete unit Modal -->
+<div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+            <h4 class="modal-title custom_align" id="Heading">Delete a Unit</h4>
+        </div>
+        <div class="modal-body">
+            <div class="alert">Are you sure you want to delete this Unit?</div>
+        </div>
+        <div class="modal-footer ">
+            <button type="button" class="btn btn-danger" id="deleteunit">Yes</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+    </div>
+</div>
+<!-- bills unit Modal -->
+<div class="modal fade" id="updateUnitBills" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+            <h4 class="modal-title custom_align" id="Heading"></h4>
+        </div>
+        <div class="modal-body">
+        </div>
+        <div class="modal-footer ">
+            <button type="button" class="btn btn-success" id="billUnitUpdate">Accept</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block page_scripts %}
+<script>
+$(document).ready(function() {
+
+    var validToSubmit = false;
+
+    csrf_token = $("meta[name=csrf_token]").attr("content");
+    updateArr = {};
+    postArr = [];
+
+    // console.log(site['uri']['public'] + '/getUnits/all');
+    $.ajax({
+        "url": site['uri']['public'] + '/getUnits/all',
+        type: "get",
+        dataType: 'json'
+    }).done(function(unitsFinance) {
+
+        payments_data = unitsFinance;
+        fillRepare(payments_data);
+        manageUnitBills();
+        //open modal on table row double click 
+        $('.tablesorter tr td').on('dblclick', function() {
+            var userId = $(this).closest('tr').data('userid');
+
+
+            //get modal data
+            $.ajax({
+                "url": site['uri']['public'] + '/getUnitDetails/' + userId,
+                type: "get",
+                dataType: 'json'
+            }).done(function(data) {
+
+                var data = data[0];
+                if (data != undefined) {
+
+
+
+                    $(".table-user-information .user-name").text(data.display_name);
+                    $(".table-user-information .user-role").text('not admin');
+                    $(".table-user-information .user-phone").text('0599965554');
+                    $(".table-user-information .user-email").text(data.email);
+
+                    //if user has units show unit table inside modal
+                    if (data.units.length > 0) {
+                        console.log("this user has units", data);
+
+                        $(".modal-unit-table tbody").text('');
+
+                        for (var i = 0; i < data.units.length; i++) {
+
+                            fillModalUnitTable(data.units[i].rawabicode, data.units[i].neighborhood,
+                                data.units[i].phone, data.units[i].topocode, data.units[i].id);
+
+                            if ($(".no-result").length > 0) {
+                                $(".no-result").addClass("hide");
+                            }
+
+                        }
+
+                    } else {
+                        console.log("there is no units");
+
+
+                    }
+
+                    //delete unit button
+                    $('.modal-unit-table button').on('click', function() {
+                        $("#delete.modal").modal('show');
+
+                        var unitId = $(this).data('unitid');;
+                        //confirm delete unit button
+                        $('#delete #deleteunit').on('click', function() {
+                            console.log("inside confirm", unitId);
+                            var params = { unit_id: unitId, csrf_token: encodeURIComponent(csrf_token) };
+                            var url = site['uri']['public'] + "/deleteunit/?";
+                            var req1 = $.ajax({
+                                type: "DELETE",
+                                url: url,
+                                data: params,
+                                beforeSend: function() {
+                                    $('.loader-modal-lg').modal('show');
+                                },
+                            }).done(function(data) {
+                                $("#delete.modal").modal('hide');
+                                //delete row from table in modal
+                                $(".modal-unit-table td").closest("tr[data-unitid=" + unitId + "]").remove();
+                                //delete it from big unit table
+                                $("#billDiv td").closest("tr[data-unitid=" + unitId + "]").remove();
+
+                                //show no result found after deleting the last unit from unit table
+                                if ($("#billDiv td").length <= 0) {
+
+                                    $("#billDiv tbody").append('<tr><td class="no-result" colspan="20"> no units found... </td></tr>');
+                                }
+                                //show no units 
+                                if ($(".modal-unit-table td").length <= 0) {
+                                    $(".modal-unit-table tbody").append('<tr><td class="no-result" colspan="5"> no units found... </td></tr>');
+
+                                }
+
+
+                            }).fail(function(err) {
+
+                            });
+                        });
+
+                    });
+                    //prevent modal to open on click at paid input
+                    if (!$(this).find("input").hasClass("updatePaid")) {
+
+                        $('#unitTableModal').modal('show');
+                    }
+
+
+                }
+            });
+
+        });
+        
+        
+
+    }).fail(function(err) {
+
+        $("#billDiv tbody").append('<tr><td class="no-result" colspan="20"> no units found... </td> </tr>');
+    });
+
+
+});
+
+
+
+function fillRepare(unitsFinance) {
+
+    for (var unit in unitsFinance) {
+
+        fillPage(unitsFinance[unit]);
+
+    }
+}
+
+function fillModalUnitTable(rawabiCode, neighborhood, phone, tabuCode, unit_id) {
+
+    $(".modal-unit-table tbody").append(
+        "<tr data-unitId=" + unit_id + "><td>" + rawabiCode + "</td>" +
+        "<td>" + neighborhood + "</td><td>" + phone + "</td><td>" + tabuCode + "</td>" +
+        "<td style='text-align: right;'><button type='button' class='btn btn-primary'  data-unitId=" + unit_id + ">Delete Unit</button></td>" +
+        "</tr>");
+
+}
+
+function fillPage(unitData) {
+    console.log(unitData);
+    // for loop to fill the tds from Objects (Params)
+    $('#billDiv tbody').append(
+
+        "<tr data-userId='" + unitData.unit_owner + "' data-unitId=" + unitData.unit_Id + ">" +
+        "<td class='inputs' id='rawabi_Code" + unitData.unit_Id + "'></td>" +
+        "<td class='inputs' id='display_Name" + unitData.unit_Id + "'></td>" +
+        "<td class='inputs' id='neighborhood" + unitData.unit_Id + "'></td>" +
+        "<td class='inputs finance-type'>" +
+        "<p>Bills:</>" +
+        "<div class='sepration-line'></div>" +
+        "<p>Payments:</p>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_1_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_1  form-control bill-amount'>" +
+        "<input  id='p_1_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'   disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input   id='b_2_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_2  form-control bill-amount' >" +
+        "<input   id='p_2_" + unitData.unit_Id + "' type='number'  class=' payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input   id='b_3_" + unitData.unit_Id + "' type='number'onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_3 form-control bill-amount'>" +
+        "<input  id='p_3_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled >" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_4_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_4 form-control bill-amount'>" +
+        "<input  id='p_4_" + unitData.unit_Id + "' type='number'  class=' payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_5_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_5 form-control bill-amount' >" +
+        "<input  id='p_5_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_6_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_6 form-control bill-amount' >" +
+        "<input  id='p_6_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_7_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_7 form-control bill-amount' >" +
+        "<input  id='p_7_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_8_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_8 form-control bill-amount' >" +
+        "<input  id='p_8_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_9_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_9 form-control bill-amount'>" +
+        "<input   id='p_9_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'   disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_10_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_10 form-control bill-amount' >" +
+        "<input  id='p_10_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_11_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_11 form-control bill-amount' >" +
+        "<input  id='p_11_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+        "<td class='inputs'>" +
+        "<input  id='b_12_" + unitData.unit_Id + "' type='number' onchange='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_12 form-control bill-amount'>" +
+        "<input  id='p_12_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+        "</td>" +
+
+
+        "<td>" +
+        "<div class='row-summary'>" +
+        "<div class='form-group '>" +
+        "<div class='input-group'>" +
+        "<span class='input-group-addon'></span>" +
+        "<input id='claculationinput" + unitData.unit_Id + "' type='text' class='form-control claculationinput' name='total' readonly='readonly'>" +
+        "</div>" +
+        "</div></div>" +
+        "</td>" +
+        "<td>" +
+        "<div class='row-summary'>" +
+        "<div class='form-group' >" +
+        "<div class='input-group'>" +
+        "<span style='width:5%;'  class='input-group-addon'></span>" +
+        "<input  id='claculationinput2" + unitData.unit_Id + "' type='text' class='form-control' name='paid' readonly='readonly' style='display:inline; '>" +
+        "<input   id='updatePaid_" + unitData.unit_Id + "' type='text' onchange='updatePaid(this)' class='form-control updatePaid' name='updatepaid' style='display:inline; '>" +
+        "</div>" +
+        "</div></div>" +
+        "</td>" +
+        "<td>" +
+        "<div class='row-summary'>" +
+        "<div>" +
+        "<div class='form-group '>" +
+        "<div class='input-group'>" +
+        "<span class='input-group-addon'></span>" +
+        "<input id='claculationinput3" + unitData.unit_Id + "' type='text' class='form-control' name='remaining'  readonly='readonly'>" +
+        "</div>" +
+        "</div>" +
+        "</div></div></td>" +
+        "<td>" +
+        "<div style='padding:0' class='input-group form-control save-icon'>" +
+        "<span class='input-group-addon' onclick='submitUpdatesFromTable(" + unitData.unit_Id + ")'>" +
+        "<span class='fa fa-floppy-o' ></span>" +
+        "</span>" +
+        "</div>" +
+        "</td></div></tr>");
+
+
+
+    totalPayments = 0;
+    paidPayments = 0;
+    unpaidPayments = 0;
+
+    //fill table data
+    $('#rawabi_Code' + unitData.unit_Id).html(unitData.rawabi_code);
+    if (unitData.user_name != null) {
+        $('#display_Name' + unitData.unit_Id).html(unitData.user_name);
+
+    }
+    if (unitData.neighborhood != null) {
+        $('#neighborhood' + unitData.unit_Id).html(unitData.neighborhood);
+
+    }
+    if (unitData.amount_due != null) {
+
+        $('#claculationinput' + unitData.unit_Id).val(unitData.amount_due);
+
+    }
+    if (unitData.remaining != null) {
+
+        $('#claculationinput3' + unitData.unit_Id).val(unitData.remaining);
+
+    }
+    if (unitData.total_balance != null) {
+
+        $('#claculationinput2' + unitData.unit_Id).val(unitData.total_balance);
+
+    }
+<<<<<<< HEAD
+
+
+
+=======
+>>>>>>> 3fae3354b4041a68f524b99eff913911d7088bd3
+}
+
+var billsMonth = [];
+
+function updateBill(element) {
+    var index = $(element).parent().index();
+    var month = $(element).closest('tbody').prev('thead').find('th').eq(index).text();
+    billsMonth.push(month);
+   
+    var currentId = $(element).attr('id');
+    var id = currentId.split("_")[2];
+    var billAmount = parseInt($(element).val());
+    var payment = $(element).attr('id').replace("b", "p");
+    var paymentAmount = isNaN(parseInt($('#' + payment).val())) ? 0 : parseInt($('#' + payment).val());
+
+    if (billAmount <= paymentAmount) {
+        //title='Bills amount should be more than current payment amount'
+        //error invalid bill amount
+        // console.log(currentId);
+        $(element).removeClass('dashed-border');
+        //show tool tip with the error
+        $('#' + currentId).attr('title', 'Bills amount should be more than current payment amount');
+        $('#' + currentId).tipsy({ trigger: 'manual', fade: true });
+        $('#' + currentId).tipsy("show");
+
+        $("#updatePaid_" + id).attr("disabled", "true");
+        validToSubmit = false;
+        setTimeout(function() { $('#' + currentId).tipsy("hide"); }, 5000);
+
+    } else {
+        //hide tooltip
+        $(element).addClass('dashed-border');
+        $('#' + currentId).attr('title', '');
+        $('#' + currentId).tipsy("hide");
+        $("#updatePaid_" + id).removeAttr("disabled");
+        var currentRowBills = $(element).parent().closest('tr').find(".bill-amount");
+        var amountDueSum = 0;
+        $.each(currentRowBills,function(index,value){
+            amountDueSum+= parseInt($(value).val());
+        });
+        
+        $("#claculationinput"+id).val(amountDueSum);
+        validToSubmit = true;
+    }
+
+    // //console.log("id- ",$(element).attr('name'));
+    // var billId = $(element).attr('id').split("_")[1];
+    // 
+    // var unit_id = $(element).data('unitid');
+    // updateArr = {"billId":billId,"billAmount": billAmount, "unitId": unit_id };
+    // postArr.push(updateArr);
+    // console.log(postArr);
+
+}
+
+function updatePaid(element) {
+
+    var res = element.id.split("_");
+    var fixed_bill = $("#fixed_bill").val();
+    var paidInput = $(".unit-payment" + res[1]);
+    var paidValue = parseInt($('#' + element.id).val());
+    enteredValue = parseInt($('#' + element.id).val());
+    var disabledInputs = $(".unit-payment" + res[1]);
+    //console.log(disabledInputs);
+    var totalPayments = 0;
+    var currentPaid = parseInt($("#claculationinput2" + res[1]).val());
+    var AmountDue = parseInt($("#claculationinput" + res[1]).val());
+    var unpaidPayments = parseInt($("#claculationinput3" + res[1]).val());
+
+    $.each(disabledInputs, function(index, input) {
+       
+        if (enteredValue <= 0) {
+            return false;
+        }
+
+        var currentBalance = $(input).val() == "" ? 0 : $(input).val();
+        var month_bill = $(this).parent().find(".bill-amount").val();
+        //console.log(month_bill);
+        if (month_bill != currentBalance) {
+            if (currentBalance > 0) {
+
+                var payment_remain = parseInt(enteredValue) + parseInt(currentBalance);
+
+                if (payment_remain >= month_bill) {
+
+                    $(input).val(parseInt(month_bill));
+                    //add dashed boreder to payment input before save
+                    $(input).addClass('dashed-border');
+                    enteredValue = payment_remain - month_bill;
+                    validToSubmit = true;
+
+                } else {
+
+                    $(input).val(parseInt(payment_remain));
+                    //add dashed boreder to payment input before save
+                    $(input).addClass('dashed-border');
+                    enteredValue = 0;
+                    validToSubmit = true;
+                }
+            } else if (enteredValue <= month_bill) {
+
+                $(input).val(enteredValue);
+                //add dashed boreder to payment input before save
+                $(input).addClass('dashed-border');
+                enteredValue = 0;
+                validToSubmit = true;
+            } else {
+
+                enteredValue -= month_bill;
+                $(input).val(parseInt(month_bill));
+                //add dashed boreder to payment input before save
+                $(input).addClass('dashed-border');
+                validToSubmit = true;
+
+            }
+        }
+
+
+
+    });
+
+    paidPayments = getPaidTotal(paidInput, res[1]).total;
+
+    var newTotal = $('#claculationinput2' + res[1]).val(currentPaid + paidValue); //paid
+
+    $('#claculationinput3' + res[1]).val(AmountDue - parseInt($(newTotal).val())); //remain
+    $("#updatePaid_" + res[1]).val('');
+}
+
+function getPaidTotal(paidInput, unitId) {
+    var paidPayments = 0;
+
+    $.each(paidInput, function(index, input) {
+
+        if ($(input).val() != "" && $(input).hasClass('dashed-border')) {
+
+            paidPayments += parseInt($(input).val());
+
+
+        }
+
+
+    });
+    var temp = { "total": paidPayments };
+    return temp;
+}
+
+// function updateList(element) {
+//     console.log("update list");
+//     //console.log($('#' + element.id).val());
+//     updateArr[element.id] = $('#' + element.id).val();
+
+
+
+// }
+
+function submitUpdatesFromTable(unitId) {
+    //dont show modal if there is no change
+    if ($(".dashed-border").length <= 0 || !validToSubmit) {
+
+        return false;
+    }
+
+    var currentRowBills = $("#billDiv tbody tr [data-unitid='" + unitId + "'].bill-amount");
+    var currentRowPayment = $("#billDiv tbody tr input.unit-payment" + unitId);
+
+
+    var bills = [];
+    var billsObj = {};
+
+    var payment = [];
+    var paymentObj = {};
+
+    var changedPayments = [];
+    var changedObj = {};
+
+
+    //if there is at least one changed bill , add it to bill object to be send to DB
+    if ($(currentRowBills).hasClass("dashed-border")) {
+
+        $.each(currentRowBills, function(index, value) {
+
+            bills.push($(value).val());
+            billsObj = { "unitId": unitId, "bills": bills, "notes": '' };
+
+
+        });
+    }
+
+    //if there is at least one changed payment , add it to payment object to be send to DB
+    if ($(currentRowPayment).hasClass("dashed-border")) {
+        $.each(currentRowPayment, function(index, value) {
+
+            payment.push($(value).val() == "" ? 0 : $(value).val());
+            paymentObj = { "unitId": unitId, "payment": payment };
+
+            if ($(value).hasClass("dashed-border")) {
+                changedPayments.push({
+                    "unitId": unitId,
+                    "data": {
+                        "index": index,
+                        "payment": $(value).val()
+                    }
+                });
+            }
+
+        });
+    }
+
+    var paidInput = $(".unit-payment" + unitId);
+    var amountDue = $("#claculationinput" + unitId).val();
+    var paid = $("#claculationinput2" + unitId).val();
+    var remaining = $("#claculationinput3" + unitId).val();
+    var tableData = {};
+    //add unit id to the fields 
+    var payType = $("#paymentType").attr('id', 'paymentType' + unitId);
+    var payNumber = $("#typeNumber").attr('id', 'typeNumber' + unitId);
+    var paytDate = $("#paymentDate").attr('id', 'paymentDate' + unitId);
+
+
+    $("#paymentType" + unitId).on('change', function() {
+
+        if (this.value == "Cash") {
+
+            $("#numberLabel").text('Receipt Number');
+
+        } else if (this.value == "Check") {
+
+            $("#numberLabel").text('Check Number');
+        } else {
+
+            $("#numberLabel").text('Deposit Number');
+        }
+
+    });
+    var paymentAttribute = {};
+
+    //add dashed border to paid input
+    $("#paid").addClass('dashed-border');
+
+    if (payment.length > 0) {
+        console.log("sss");
+        $("#paymentConfirm").modal('show');
+
+    } else {
+        var month = '';
+        //if user only changed bills 
+        var td = $('.bill-amount').closest(".dashed-border").parent();
+        var tbody = td.closest('tbody').prev('thead').find('th');
+
+        $.each(billsMonth, function(index, value) {
+            // console.log();
+            month += value + ",";
+
+        });
+        var billModal = $("#updateUnitBills");
+
+        billModal.modal('show');
+
+        billModal.on('shown', function() {
+
+            $("#updateUnitBills .modal-body").html('');
+            $("#updateUnitBills .modal-title").text("Confirm Updating Bills");
+            $("#updateUnitBills .modal-body").append('Bill amount for ' + month.slice(0, -1) + ' will be updated do you want to continue?');
+            $("#updateUnitBills .modal-body").append("<textarea class='billsNote' rows='4' cols='47'" +
+                "placeholder='please write the reason behind updating bill amount for each month'></textarea>"
+            );
+
+            
+
+            $("#billUnitUpdate").on('click', function() {
+                var notes = $(".billsNote").val();
+                billsObj['notes'] = notes;
+                tableData = {
+                    "payment": paymentObj,
+                    "bills": billsObj,
+                    "paymentAttr": paymentAttribute,
+                    "changedPayment": changedPayments,
+                    csrf_token: encodeURIComponent(csrf_token)
+                };
+                console.log(tableData);
+                sendToDB(tableData,billModal);
+            });
+
+
+        });
+
+
+
+
+    }
+    var paymentModal = $('#paymentConfirm');
+    //show payment confirm modal
+    
+    paymentModal.on('shown', function() {
+
+        //place value into modal
+        $("#amountDue").val(amountDue);
+        $("#paid").val(paid);
+        $("#remaining").val(remaining);
+
+        $("#paymentDate" + unitId).datetimepicker({
+            showTodayButton: true,
+            allowInputToggle: true,
+            useCurrent: true,
+            focusOnShow: true,
+            inline: true,
+            icons: {
+                today: 'glyphicon glyphicon-calendar'
+            },
+            format: 'DD-MM-YYYY'
+        });
+
+
+    });
+    //send data to save into DB 
+    $("#savePayment").unbind().on('click', function() {
+
+        //get payment valus
+        var paymentType = $("#paymentType" + unitId).find(":selected").text();
+        var TypeNumber = $("#typeNumber" + unitId).val();
+        var paymenttDate = $("#paymentDate" + unitId).val();
+
+        //used reverse and join to change date format 
+        var date = paymenttDate.split("-").reverse().join("-");
+
+        paymentAttribute = {
+            "payment-Type": paymentType,
+            "Type-Number": TypeNumber,
+            "payment-Date": date,
+            "amount-Due": amountDue,
+            "total-balance": paid,
+            "remaining": remaining
+        };
+
+
+        //if there is bill update
+        if (billsObj.bills != undefined) {
+
+            tableData = {
+                "payment": paymentObj,
+                "bills": billsObj,
+                "paymentAttr": paymentAttribute,
+                "changedPayment": changedPayments,
+                csrf_token: encodeURIComponent(csrf_token)
+            };
+        } else {
+            tableData = {
+                "payment": paymentObj,
+                "bills": -1,
+                "paymentAttr": paymentAttribute,
+                "changedPayment": changedPayments,
+                csrf_token: encodeURIComponent(csrf_token)
+            };
+        }
+
+
+        sendToDB(tableData , paymentModal);
+
+
+    });
+}
+
+// initialize datetime filter 
+$('#dateFilter').datetimepicker({
+    debug: true,
+    defaultDate: new Date(),
+    dayViewHeaderFormat: 'YYYY',
+    format: 'YYYY',
+    viewMode: 'years',
+    allowInputToggle: true
+});
+
+//submit table data to DB 
+
+function sendToDB(tableData , modal) {
+    //add payment to DB
+    var url = site['uri']['public'] + "/getUnits/updateFinance/";
+    var req1 = $.ajax({
+        type: "POST",
+        url: url,
+        data: tableData,
+    }).done(function(data) {
+        modal.modal('hide');
+        $("#settings-alerts").html("<div class='alert alert-success'>New Data Has been Saved</div>");
+        //remove dashed boreder
+        $(".payment-input").removeClass('dashed-border');
+        $('.bill-amount').removeClass("dashed-border");
+        $("#paid").removeClass("dashed-border");
+
+    }).fail(function(err) {
+        console.log(err);
+        $("#settings-alerts").html("<div class='alert alert-danger'>Data Has not been Saved</div>");
+    });
+}
+
+// to return year only 
+function getCalenderDate() {
+    var date = $('#dateFilter').data("DateTimePicker").date().toDate(),
+        year = date.getFullYear(),
+        d = new Date(year),
+        day = d.getDate();
+    return year;
+}
+function manageUnitBills(){
+    var date = new Date(),
+            month = date.getMonth(),
+            year = getCalenderDate();
+        var unitBills = [];
+        var billsInfo = [];
+        var unitId = '';
+        $.each($("#billDiv tbody tr"), function() {
+            unitId += $(this).data('unitid') + "-";
+
+        });
+
+        unitId = unitId.slice(0, -1);
+        $.ajax({
+            "url": site['uri']['public'] + '/manageUnitBills/' + unitId + "/" + year,
+            type: "get",
+            dataType: 'json'
+        }).done(function(data) {
+             console.log("ddd",data);
+
+            for (unitId in data) {
+
+
+                var sumDue = 0;
+                // var sumPaid = 0;
+                for (var i = 0; i < data[unitId].length; i++) {
+                    sumDue += parseInt(data[unitId][i]);
+
+                    $("#b_" + (i + 1) + "_" + unitId).val(data[unitId][i]);
+
+                    $("#claculationinput" + unitId).val(sumDue);
+                }
+
+                if (data['payment_' + unitId] != undefined) {
+                    for (var i = 0; i < data['payment_' + unitId].length; i++) {
+
+                        //sum += parseInt(data[unitId][i]);
+                        var paymentValue = data['payment_' + unitId][i];
+                        $("#p_" + (i + 1) + "_" + unitId).val(paymentValue == 0 ? "" : paymentValue);
+
+<<<<<<< HEAD
+                        //$("#claculationinput" + unitId).val(sum);
+                    }
+                }
+
+
+            }
+
+        });
+}
+=======
+
+>>>>>>> 3fae3354b4041a68f524b99eff913911d7088bd3
+$('#dateFilter').on('change dp.change', function() {
+    $('#billDiv tbody').html("");
+    fillRepare(payments_data);
+    manageUnitBills();
+
+});
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,556 @@
+{% extends "layouts/layout-dashboard.twig" %} 
+{% set page_group = "about_us_members" %}
+{% block page %} 
+    {% set page = page | merge({ "title" : "About Us", "description" : "" }) %}
+    {{ parent() }}
+{% endblock %} 
+{% block content %}
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="panel panel-primary">
+                <div class="container-fluid">
+                    <h2>{{action|capitalize}}</h2>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                        <div class="se-pre-con"></div>                        
+                            <div id="alert-info" class="alert alert-info alert-dismissable">
+                                <strong>Server Response:&nbsp;</strong> <span id="response"></span>
+                            </div>
+                            <div id="alert-danger" class="alert alert-danger alert-dismissable">
+                                <strong>Error!</strong> Something went wrong!
+                            </div>
+                            <div id="wrongTypeAlert" class="alert alert-danger alert-dismissable">
+                                <strong>Error!</strong> Wrong file type. Selected file is not an image.
+                            </div>
+                            {% if action == "members" %}
+                                <button type="button" class="btn btn-success pull-right" data-toggle="modal" data-target="#insertModal">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                                <div class="modal fade modal-lg" id="insertModal" role="dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                                            <h4 class="modal-title">Add Member</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-xs-1"></div>
+                                                <div class="col-xs-10">
+                                                    <form id="insertForm">
+                                                        <div id="name-group" class="form-group">
+                                                            <label for="name">Name:</label>
+                                                            <input id="insertName" type="text" class="form-control" name="name" placeholder="Member name" required>
+                                                        </div>
+                                                        <div id="neighborhood-group" class="form-group">
+                                                            <label for="neighborhood">Neighborhood:</label>
+                                                            <select id="insertNeighborhood" name="neighborhood" class="form-control" required>
+                                                                <option value="" disabled="disabled" selected="selected">Select neighborhood</option>
+                                                                {% if count > 0 %}
+                                                                    {% for j in range(1, count) %}
+                                                                        <option class={{'neighborhood' ~ j}}></option>
+                                                                    {% endfor %}
+                                                                {% endif %}
+                                                            </select>
+                                                        </div>
+                                                        <div id="membership-group" class="form-group">
+                                                            <label for="membership">Membership type:</label>
+                                                            <select id="insertMembership" name="membership" class="form-control" required>
+                                                                <option value="" disabled="disabled" selected="selected">Select membership</option>
+                                                                <option value="head">Head</option>
+                                                                <option value="manager">Manager</option>
+                                                                <option value="owner">Owner</option>
+                                                            </select>
+                                                        </div>
+                                                        <div id="description-group" class="form-group">
+                                                            <label for="description">Description:</label>
+                                                            <textarea id="insertDescription" class="form-control" name="description" rows="5" placeholder="Description about the member." required></textarea>
+                                                        </div> 
+                                                        <div id="image" class="form-group">
+                                                            <label for="image">Profile image:</label>
+                                                            <input id="fileinputInsert" type="file" name="image">
+                                                        </div>
+                                                        <div class="form-group" style="overflow:auto">
+                                                        <div id="parentInsert" style="position:relative;">
+                                                            <img id="photoInsert" class="photo" src={{site['uri']['public'] ~ "/" ~ "images/members/noimage.png"}}  style="height:300px;">
+                                                        </div>
+                                                            <input type="hidden" name="x1" value="" />
+                                                            <input type="hidden" name="y1" value="" />
+                                                            <input type="hidden" name="x2" value="" />
+                                                            <input type="hidden" name="y2" value="" />
+                                                            <input type="hidden" name="width" value="" />
+                                                            <input type="hidden" name="height" value="" />
+                                                            <input type="hidden" name="orgwidth" value="" />
+                                                            <input type="hidden" name="orgheight" value="" />
+                                                        </div>
+                                                        <button style="display:none" type="submit" class="btn btn-success">Submit <span class="fa fa-arrow-right"></span></button>
+                                                    </form>
+                                                </div>
+                                            <div class="col-xs-1"></div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button id="insert" type="button" class="btn btn-success">
+                                                Add
+                                            </button>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if membercount > 0 %}
+                                {% for i in range(1, membercount) %}
+                                    <div id={{'memberinfo' ~ i}} class="jumbotron vertical-center motto">
+                                        <div class="inside">
+                                            <div class="row">
+                                                {% if action == "members" %}
+                                                    <div class="container-fluid">
+                                                        <div class="buttons pull-right">
+                                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target={{'#editModal' ~ i}}>
+                                                                <i class="fa fa-edit"></i>
+                                                            </button>
+                                                            <div class="modal fade modal-lg" id={{'editModal' ~ i}} role="dialog">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <button type="button" class="close" data-dismiss="modal"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                                                                        <h4 class="modal-title">Edit Member</h4>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <div class="row">
+                                                                            <div class="col-xs-1"></div>
+                                                                            <div class="col-xs-10">
+                                                                                <form id={{'editForm' ~ i}}>
+                                                                                    <div id="name-group" class="form-group">
+                                                                                        <label for="name">Name:</label>
+                                                                                        <input id={{'editName' ~ i}} type="text" class="form-control" name="name" placeholder="Member name" required>
+                                                                                    </div>
+                                                                                    <div id="neighborhood-group" class="form-group">
+                                                                                        <label for="neighborhood">Neighborhood:</label>
+                                                                                        <select id={{'editNeighborhood' ~ i}} name="neighborhood" class="form-control" required>
+                                                                                            <option value="" disabled="disabled" selected="selected">Select neighborhood</option>
+                                                                                            {% if count > 0 %}
+                                                                                                {% for j in range(1, count) %}
+                                                                                                    <option class={{'neighborhood' ~ j}}></option>
+                                                                                                {% endfor %}
+                                                                                            {% endif %}
+                                                                                        </select>
+                                                                                    </div>
+                                                                                    <div id="membership-group" class="form-group">
+                                                                                        <label for="membership">Membership type:</label>
+                                                                                        <select id={{'editMembership' ~ i}} name="membership" class="form-control" required>
+                                                                                            <option value="" disabled="disabled" selected="selected">Select membership</option>
+                                                                                            <option value="head">Head</option>
+                                                                                            <option value="manager">Manager</option>
+                                                                                            <option value="owner">Owner</option>
+                                                                                        </select>
+                                                                                    </div>
+                                                                                    <div id="description-group" class="form-group">
+                                                                                        <label for="description">Description:</label>
+                                                                                        <textarea id={{'editDescription' ~ i}} class="form-control" name="description" rows="5" placeholder="Description about the member." required></textarea>
+                                                                                    </div> 
+                                                                                    <div id="image" class="form-group">
+                                                                                        <label for="image">Profile image:</label>
+                                                                                        <input id={{'fileinput' ~ i}} type="file" name="image">
+                                                                                    </div>
+                                                                                    <div class="form-group" style="overflow:auto">
+                                                                                    <div id={{'parent' ~ i}} style="position:relative;">
+                                                                                        <img id={{'photo' ~ i}} class="photo" src={{site['uri']['public'] ~ "/" ~ "images/members/noimage.png"}}  style="height:300px;">
+                                                                                    </div>
+                                                                                        <input type="hidden" name="x1" value="" />
+                                                                                        <input type="hidden" name="y1" value="" />
+                                                                                        <input type="hidden" name="x2" value="" />
+                                                                                        <input type="hidden" name="y2" value="" />
+                                                                                        <input type="hidden" name="width" value="" />
+                                                                                        <input type="hidden" name="height" value="" />
+                                                                                        <input type="hidden" name="orgwidth" value="" />
+                                                                                        <input type="hidden" name="orgheight" value="" />
+                                                                                    </div>
+                                                                                    <button style="display:none" type="submit" class="btn btn-success">Submit <span class="fa fa-arrow-right"></span></button>
+                                                                                </form>
+                                                                            </div>
+                                                                        <div class="col-xs-1"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button id={{'edit' ~ i}} type="button" class="btn btn-warning">
+                                                                            Update
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target={{'#deleteModal' ~ i}}>
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                            <div class="modal fade" id={{'deleteModal' ~ i}} role="dialog">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <button type="button" class="close" data-dismiss="modal"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                                                                        <h4 class="modal-title">Delete a Member</h4>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <p>Are you sure you want to delete this member?</p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button id={{'delete' ~ i}} type="button" class="btn btn-danger">
+                                                                            Yes
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <form id={{'displayForm' ~ i}} style="display:inline">
+                                                                <label class="switch">
+                                                                    <input id={{'display' ~ i}} name="display" type="checkbox" value="on">
+                                                                    <span class="slider round"></span>
+                                                                </label>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                                <div class="col-sm-4">
+                                                    <div class="image">
+                                                        <img id={{'img' ~ i}} class="img-fluid loading" alt="">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    <h2 class="heading">
+                                                        <span id={{'name' ~ i}}>
+                                                        </span>
+                                                        <strong id={{'member' ~ i}}>
+                                                        </strong>
+                                                    </h2>
+                                                    <div id={{'desc' ~ i}} class="details">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr id={{'separator' ~ i}} class="dashStyle">
+                                {% endfor %}
+                            {% endif %}
+                                <div class="modal fade" id="infoModal" role="dialog">
+                                    <div class="modal-content">
+                                        <div id="infomodalheader" class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                                            <h4 id="modalheader" class="modal-title"></h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p id="modalresponse"></p>
+                                            <img id="uploadingInfoImg" style="display:none" alt="" class="center-block" src={{site['uri']['public'] ~ "/images/loaders/loader2-64x/Preloader_1.gif"}}>
+                                            <h4 id="uploadingInfotext" style="display:none" class="text-center">Uploading...</h4>
+                                        </div>
+                                        <div id="infomodalfooter" class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>    
+        </div>
+    </div>
+{% endblock %} 
+{% block page_scripts %}
+    <script>
+    $("body").css({"position": "fixed", "overflow-y": "scroll"});
+    {% if action == "members" %}
+        window.history.replaceState({}, document.title, window.location.href.split("?")[0]);
+        function imageIsLoaded(e, selector) {
+            $(selector).attr('src', e.target.result);
+            $(selector).on('load', function() {
+                var img = document.getElementById(selector.substring(1));
+                if (img.height < 300) {
+                    $(selector).removeAttr("style").css({height:"300px"});
+                }
+                if (img.width < 300) {
+                    $(selector).removeAttr("style").css({width:"300px"});
+                }
+                $('input[name=x1]').val(img.width/2 - 150);
+                $('input[name=y1]').val(img.height/2 - 150);
+                $('input[name=x2]').val(img.width/2 + 150);
+                $('input[name=y2]').val(img.height/2 + 150);
+                $('input[name=width]').val(300);
+                $('input[name=height]').val(300);
+                $('input[name=orgwidth]').val(img.width);
+                $('input[name=orgheight]').val(img.height);
+                $(selector).imgAreaSelect( {
+                    aspectRatio: '1:1',
+                    handles: true,
+                    persistent: true,
+                    parent: selector.replace("photo","parent"),
+                    x1: img.width/2 - 150, y1: img.height/2 - 150, x2: img.width/2 + 150, y2: img.height/2 + 150,
+                    onSelectEnd: function (image, selected) {
+                        $('input[name=x1]').val(selected.x1);
+                        $('input[name=y1]').val(selected.y1);
+                        $('input[name=x2]').val(selected.x2);
+                        $('input[name=y2]').val(selected.y2);
+                        $('input[name=width]').val(selected.width);
+                        $('input[name=height]').val(selected.height);
+                    }
+                });
+
+            });
+        }
+        function showUploadLoading() {
+            $('#uploadingInfoImg').show();
+            $('#uploadingInfotext').show();
+            $('#infomodalheader').hide();
+            $('#infomodalfooter').hide();
+            $('#modalresponse').hide();
+            $('#infoModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+        function hideUploadLoadingAndShowInfo(textHeader, textBody) {
+            $('#uploadingInfoImg').hide();
+            $('#uploadingInfotext').hide();
+            $('#infomodalheader').show();
+            $('#infomodalfooter').show();
+            $('#modalresponse').show();
+            $("#modalheader").text(textHeader);
+            $("#modalresponse").html(textBody);
+            $('#infoModal').modal({
+                backdrop: true,
+                keyboard: true,
+            });
+        }
+    {% endif %}
+        $(function() {
+            $("#about-sidebar-icon").addClass("active");
+            {% if action == "members" %}
+            var fromDBNeighborhood = JSON.parse("{{neighborhoods}}".replace(/&quot;/g,'"'));
+            var count = {{count}};
+            for(let i = 1; i <= count; i++) {
+                $(".neighborhood" + i).attr("value", fromDBNeighborhood[i - 1].id);
+                $(".neighborhood" + i).text(fromDBNeighborhood [i - 1].neighborhood_en + " - " + fromDBNeighborhood [i - 1].neighborhood_ar);
+            }
+            $.validator.setDefaults({
+                debug: true,
+                success: "valid"
+            });
+            $("#fileinputInsert").change(function() {
+                var file = this.files[0];
+                var imagefile = file.type;
+                var match= ["image/jpeg","image/png","image/jpg"];
+                if(!((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]))) {
+                    $("#fileinputInsert").val('').clone(true);
+                    $("#modalheader").text("Server Response");
+                    $("#modalresponse").html('<strong style="color:red">Error!</strong> Unsupported Type');
+                    $("#infoModal").modal("toggle");
+                    return false;
+                }
+                else {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        imageIsLoaded(e, "#photoInsert");
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+            $('#insertForm').on('submit', function(event) {
+                event.preventDefault();
+                showUploadLoading();
+                var oldTextVal = $('#insertDescription').val();
+                $('#insertDescription').val($("#insertDescription").val().replace(/(?:\r\n|\r|\n)/g, '\\n')
+                                               .replace(/(?:")/g, '\\"'));
+                var formData = new FormData(this);
+                formData.append('csrf_token', encodeURIComponent(csrf_token));
+                $.ajax({
+                    type        : 'POST',
+                    url         : site['uri']['public'] + '/about-us/upload-insert',
+                    data        : formData, 
+                    contentType : false,       
+                    cache       : false,             
+                    processData : false,    
+                })
+                .done(function(data) {
+                    $('#insertDescription').val(oldTextVal);
+                    $('#insertModal').modal('toggle');
+                    $("#insertForm").find("input,select,textarea").val("");
+                    $('#photoInsert').unbind();
+                    $('#photoInsert').imgAreaSelect({remove:true});
+                    $("#photoInsert").attr("src", "{{site['uri']['public'] ~ "/" ~ "images/members/noimage.png"}}");
+                    if(data == "Added Successfully") {
+                        window.location = "{{site['uri']['public'] ~ "/" ~ "about-us/members?infomodal=1"}}";
+                        return;
+                    }
+                    hideUploadLoadingAndShowInfo("Server Response", data);
+                })
+                .fail(function(err, e1, e2) {
+                    $('#insertModal').modal('toggle');
+                    $("#insertForm").find("input,select,textarea").val("");
+                    $('#photoInsert').unbind();
+                    $('#photoInsert').imgAreaSelect({remove:true});
+                    $("#photoInsert").attr("src", "{{site['uri']['public'] ~ "/" ~ "images/members/noimage.png"}}");
+                    hideUploadLoadingAndShowInfo("Server Response", '<strong style="color:red">Error!</strong> Something Went Wrong. ' + e2);
+                });
+            });
+            {% endif %}
+
+            var fromDB = JSON.parse("{{neighborhood}}".replace(/&quot;/g,'"'));
+            var membercount = {{membercount}};
+            csrf_token = $("meta[name=csrf_token]").attr("content");
+            for(let i = 1; i <= membercount; i++) {
+                {% if action == "members" %}
+                $('#editName' + i).val(fromDB[i - 1].name);
+                $('#editNeighborhood' + i).val(fromDB[i - 1].neighborhood_id);
+                $('#editMembership' + i).val(fromDB[i - 1].membership_type);
+                $('#editDescription' + i).val(fromDB[i - 1].description);
+                $('#photo' + i).attr("src", site['uri']['public'] + "/" + fromDB[i - 1].profile_pic_path);
+
+                $("#fileinput" + i).change(function() {
+                    var file = this.files[0];
+                    var imagefile = file.type;
+                    var match= ["image/jpeg","image/png","image/jpg"];
+                    if(!((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]))) {
+                        $("#fileinput" + i).val('').clone(true);
+                        $("#modalheader").text("Server Response");
+                        $("#modalresponse").html('<strong style="color:red">Error!</strong> Unsupported Type');
+                        $("#infoModal").modal("toggle");
+                        return false;
+                    }
+                    else {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            imageIsLoaded(e, "#photo" + i);
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+                $('#editForm' + i).on('submit', function(event) {
+                    event.preventDefault();
+                    showUploadLoading();
+                    var oldTextVal = $('#editDescription' + i).val();
+                    $('#editDescription' + i).val($('#editDescription' + i).val().replace(/(?:\r\n|\r|\n)/g, '\\n')
+                                                   .replace(/(?:")/g, '\\"'));
+                    var formData = new FormData(this);
+                    formData.append('csrf_token', encodeURIComponent(csrf_token));
+                    formData.append('id', fromDB[i - 1].id);
+                    $.ajax({
+                        type        : 'POST',
+                        url         : site['uri']['public'] + '/about-us/upload-edit',
+                        data        : formData, 
+                        contentType : false,       
+                        cache       : false,             
+                        processData : false,    
+                    })
+                    .done(function(data) {
+                        $('#editModal' + i).modal('toggle');
+                        if(data == "Edited Successfully") {
+                            $.get(site['uri']['public'] + '/about-us/members?id=' + fromDB[i - 1].id, function(data) {
+                                var fromDBEdited = JSON.parse(data);
+                                $("#img" + i).attr("src", site['uri']['public'] + "/" + fromDBEdited[0].profile_pic_path);
+                                $("#desc" + i).html(fromDBEdited[0].description.replace(/(?:\r\n|\r|\n)/g, '<br>'));
+                                $("#name" + i).text(fromDBEdited[0].name);
+                                $("#member" + i).text(fromDBEdited[0].membership_type.replace(/\b\w/g, l => l.toUpperCase()));
+                                $("#member" + i).text($("#member" + i).text() + ": " + fromDBEdited[0].neighborhood_en);
+                                hideUploadLoadingAndShowInfo("Server Response", '<strong style="color:green">Success!</strong> Member Edited Succesfully.');
+                            });
+                            return;
+                        }
+                        hideUploadLoadingAndShowInfo("Server Response", data);
+                    })
+                    .fail(function(err, e1, e2) {
+                        $('#editModal' + i).modal('toggle');
+                        hideUploadLoadingAndShowInfo("Server Response", '<strong style="color:red">Error!</strong> Something Went Wrong. ' + e2);
+                    });
+                    $('#editDescription' + i).val(oldTextVal);
+                });
+                {% endif %}
+                
+
+                $("#img" + i).attr("src", site['uri']['public'] + "/" + fromDB[i - 1].profile_pic_path);
+                $("#desc" + i).html(fromDB[i - 1].description.replace(/(?:\r\n|\r|\n)/g, '<br>'));
+                $("#name" + i).text(fromDB[i - 1].name);
+                $("#member" + i).text(fromDB[i - 1].membership_type.replace(/\b\w/g, l => l.toUpperCase()));
+                {% if action == "members" %}
+                    $("#member" + i).text($("#member" + i).text() + ": " + fromDB[i - 1].neighborhood_en);
+                    if (fromDB[i - 1].display == 1) {
+                        $('#display' + i).prop('checked', true);
+                    }
+                    $('#display' + i).on('change',function(){
+                        $('#displayForm' + i).submit();
+                    });
+                    $('#displayForm' + i).on('submit', function(event) {
+                        event.preventDefault();
+                        var formData = new FormData(this);
+                        formData.append('csrf_token', encodeURIComponent(csrf_token));
+                        formData.append('id', fromDB[i - 1].id);
+                        $.ajax({
+                            type        : 'POST', 
+                            url         : site['uri']['public'] + '/about-us/display', 
+                            data        : formData, 
+                            contentType : false,       
+                            cache       : false,             
+                            processData : false        
+                        })
+                        .done(function(data) {
+                            //If changing the display property of a member is successful, do something?
+                        })
+                        .fail(function(err, e1, e2) {
+                            $("#modalheader").text("Server Response");
+                            $("#modalresponse").html('<strong style="color:red">Error!</strong> Something Went Wrong. ' + e2);
+                            $("#infoModal").modal("toggle");
+                        });
+                    });
+                    $('#delete' + i).on('click', function(event) {
+                        event.preventDefault();
+                        var deleteData = new FormData();
+                        deleteData.append('csrf_token', encodeURIComponent(csrf_token));
+                        deleteData.append('id', fromDB[i - 1].id);
+                        $.ajax({
+                            type        : 'POST', 
+                            url         : site['uri']['public'] + '/about-us/delete', 
+                            data        : deleteData, 
+                            contentType : false,      
+                            cache       : false,             
+                            processData : false       
+                        })
+                        .done(function(data) {
+                            $('#deleteModal' + i).modal('toggle');
+                            $('#memberinfo' + i).css({display: "none"});
+                            $('#separator' + i).css({display: "none"});
+                        })
+                        .fail(function(err, e1, e2) {
+                            $('#deleteModal' + i).modal('toggle');
+                            $("#modalheader").text("Server Response");
+                            $("#modalresponse").html('<strong style="color:red">Error!</strong> Something Went Wrong. ' + e2);
+                            $("#infoModal").modal("toggle");
+                        });
+                    });
+
+                    let editForm = $('#editForm' + i);
+                    editForm.validate();
+
+                    $("#edit" + i).on("click", function() {
+                        if (editForm.valid()) {
+                            $('#editForm' + i).submit();
+                        }
+                    });
+                {% endif %}
+            }
+            {% if action == "members" %}
+                var insertForm = $("#insertForm");
+                insertForm.validate();
+
+                $("#insert").on("click", function() {
+                    if (insertForm.valid()) {
+                        $('#insertForm').submit();
+                    }
+                });
+
+                if ({{infomodal}} === 1) {
+                    $("#modalheader").text("Server Response");
+                    $("#modalresponse").html('<strong style="color:green">Success!</strong> Member Added Succesfully.');
+                    $("#infoModal").modal("toggle");
+                }
+            {% endif %}
+            $(".se-pre-con").fadeOut("slow");
+            $("body").css({"position": "static", "overflow-y": "auto"});
+        }); 
+        
+    </script>
+{% endblock %}

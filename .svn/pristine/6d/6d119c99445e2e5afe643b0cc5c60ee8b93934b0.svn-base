@@ -1,0 +1,925 @@
+{% extends "layouts/layout-dashboard.twig" %} {% set page_group = "Payments" %} {# Set page properties (page.*) here. #} {% block page %} {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, but BEFORE the page itself is rendered. #} {% set page = page | merge({ "title" : "", "description" : "" }) %} {{ parent() }} #} {% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{site.uri.public}}/css/bootstrap-datepicker.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/responsive.dataTables.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/dataTables.bootstrap.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/datepicker.css" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.min.css" />
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.min.css" />
+<link rel="stylesheet" href="{{site.uri.public}}/css/unitindex.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/payments.css" type="text/css">
+<style>
+
+
+         @media only screen and (max-width: 768px), (min-width: 768px) and (max-width: 1024px) {
+
+             
+            .PaymentsTable td:nth-of-type(1):before {
+                content: "Unit Code";
+            }
+            .PaymentsTable td:nth-of-type(2):before {
+                content: "Neighbourhood";
+            }
+            .PaymentsTable td:nth-of-type(3):before {
+                content: "Year";
+            }
+            .PaymentsTable td:nth-of-type(4):before {
+                content: "Key Handing";
+            }
+            .PaymentsTable td:nth-of-type(5):before {
+                content: "Total Amount Paid";
+            }
+            .PaymentsTable td:nth-of-type(6):before {
+                content: "Total Amount Due";
+            }
+
+           .PaymentsTable td:nth-of-type(7):before {
+                content: "Total Amount Remaining";
+            }
+          }
+</style>
+<div class="row">
+   <div class="col-xs-12">
+      <div class="panel panel-primary">
+         <div class="container-fluid">
+            <form class="form-inline">
+               <div class="form-group">
+                  <h2>Payments / Bills</h2>
+               </div>
+            </form>
+            <div id='date'  class='header-datePicker'>
+               <div id="dateDiv">
+                  <label class="col-xs-5 col-md-1 col-sm-4 padding-top-5px padding-left "  style="margin-top:12px" for="totalAptsSelect" > Date: </label>
+                  <div class="col-xs-7 col-sm-3 no-padding-right" style="margin-top:10px">
+                     <div class='input-group date ' id='dateFilter' style="padding-bottom:10px;ss">
+                        <input type='text' class="form-control " data-date-view-mode="years" />
+                        <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                     </div>
+                  </div>
+               </div>
+               <div style="clear:both;"></div>
+            </div>
+            <div class="panel panel-default">
+               <div class="panel-body">
+                  <div class="tabbable">
+                     <!-- Only required for left/right tabs -->
+                     <ul class="nav nav-tabs">
+                        <li class="active"><a href="#tab1" data-toggle="tab">Payments This Year</a></li>
+                        <li><a href="#tab2" data-toggle="tab">Payment History</a></li>
+                     </ul>
+                     <div class="tab-content">
+                        <div class="tab-pane active" id="tab1">
+                           <!--Table for payments in the (current year)-->
+                           <div class="tablepadding" > </div>
+                           <div class="table-responsive ">
+                           <table  align="right" id='billDiv' class=' table   table-bordered padding-top-5px table-hover table-striped tablesorter-bootstrap dataTables' cellspacing='0' style='display:block; table-layout:fixed; border:none; font-family:Bre-Serif; text-align: center; '>
+                              <thead>
+                                 <tr >
+                                    <th> Rawabi Code </th>
+                                    <th> Topo Code </th>
+                                    <th> Finance Type </th>
+                                    <th>Jan</th>
+                                    <th>Feb</th>
+                                    <th>March</th>
+                                    <th>April</th>
+                                    <th>May</th>
+                                    <th>June</th>
+                                    <th>July</th>
+                                    <th>Aug</th>
+                                    <th>Sep</th>
+                                    <th>Oct</th>
+                                    <th>Nov</th>
+                                    <th>Dec</th>
+                                    <th>Total Bills / Payments</th>
+                                 </tr>
+                        </div>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        </table>
+                     </div>
+                     </div>
+
+                     <div class="tab-pane" id="tab2">
+                        <!--Table for payment history (all previous years)-->
+                         <div class="tablepadding" > </div>
+                        <div class="table-responsive">
+                           <table id="paymentHistoryTable" class=" table tablesorter PaymentsTable table-bordered table-hover table-striped tablesorter-bootstrap dataTables cellspacing=0 ">
+                              <thead>
+                                 <th class="all">Unit Code</th>
+                                 <th class="all">Neighbourhood</th>
+                                 <th class="all">Year</th>
+                                 <th class="all">Key Handing</th>
+                                 <th class="all">Total Amount Paid</th>
+                                 <th class="all">Total Amount Due</th>
+                                 <th class="all">Total Amount Remaining</th>
+                              </thead>
+                              <tbody>
+                              </tbody>
+                           </table>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               {% for key, value in units %}
+               <input type="hidden" class="unitIDsClass" value={{value.id}}>  
+               {% endfor %}
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+</div>
+</div>
+</div>
+{% include 'components/common/spinnerLoader.twig' %}
+{% endblock %}
+{% block page_scripts %}
+<script >
+   var payTable;
+    $('#dateFilter').datetimepicker({
+       minDate: new Date(2017, 0, 1),
+       defaultDate: new Date(),
+       dayViewHeaderFormat: 'YYYY',
+       format: 'YYYY',
+       viewMode: 'years',
+       allowInputToggle: true
+   });
+   function getCalenderDate() {
+   var date = $('#dateFilter').data("DateTimePicker").date().toDate(),
+       year = date.getFullYear(),
+       d = new Date(year),
+       day = d.getDate();
+   return year;
+   }
+   
+   function getAllYearsBillsAndPaymentsForUser() {
+       var date = new Date(),
+           month = date.getMonth(),
+           year = getCalenderDate();
+       var unitId = '';
+       $.each($(".unitIDsClass"), function() {
+           unitId += $(this).val() + "-";
+   
+       });
+   
+       unitId = unitId.slice(0, -1);
+       $.ajax({
+           "url": site['uri']['public'] + '/manageUnitBillsAllYears/' + unitId + "/" + year,
+           type: "get",
+           dataType: 'json'
+       }).done(function(data) {
+           payTable.clear().draw();
+            for (unitId in data) {
+               var unitInfo = unitId.split("_");
+               var unitCode = unitInfo[0];
+               var unitYear = unitInfo[1];
+               var unitDueAmount = unitInfo[2];
+               var unitPaidAmount = unitInfo[3];
+               var unitNeighbourhood = unitInfo[4];
+               var key_handing = unitInfo[5];
+               var remaining = unitDueAmount - unitPaidAmount;
+               var className = "";
+               if (unitPaidAmount < unitDueAmount) {
+                   className = "redClass";
+               }
+               else {
+                   className = "greenClass";
+               }
+   
+                   var tableRow =     payTable.row.add( [
+                           unitCode,
+                           unitNeighbourhood,
+                           unitYear,
+                           key_handing,
+                           unitPaidAmount,
+                           unitDueAmount,
+                           remaining
+                   ] ).draw( false ).node();
+   
+                   $( tableRow ).addClass(className);
+           }
+       });
+   }
+        
+   $(document).ready(function() {
+   
+   
+                   payTable = $('#paymentHistoryTable').DataTable({
+   {#                     'ajax': {
+                       "type": "Get",
+                       "url": site['uri']['public'] + '/paymentTransaction/all',
+                       "dataSrc": function (json) {
+                       return json;    
+                       }
+                   }, #}
+                   "language": {
+                       "processing": '<i class="fa fa-circle-o-notch fa-spin"></i> Fetching records...',
+                       "emptyTable": "No records found"
+                   },
+                   "processing": true,
+                   "autoWidth": false,
+                   "paging": true,
+                   "ordering": true,
+                   "info": false,
+                   "searching": true,
+                   "responsive": true,
+                   "pageLength": 10
+   {#                     "columnDefs": [
+                       {
+                               "targets": [
+                                   0,
+                                   1,
+                                   2,
+                                   3,
+                                   4,
+                                   5,
+                                   6,
+                                   7,
+                                   8,
+                                   9,
+                                   10
+                               ],
+                           "className": "pointandclick",
+                           "createdCell": function (td, cellData, rowData, row, col) {
+                               $(td).attr('data-toggle', 'tooltip');
+                               $(td).attr('title', 'Show full transaction');
+   
+                                   if (col === 2) {
+   
+                                       if ($(td).text() == "") {
+   
+                                           $(td).text("Not Assigned");
+                                       }
+                                   }
+                                   else if (col === 6) {
+   
+                                       if ($(td).text() == "") {
+   
+                                           $(td).text("-");
+                                       }
+                                   }
+                               }
+                           }
+                       ],
+   
+                       columns: [
+                               {
+                                   "data": "rawabicode"
+                               }, {
+                                   "data": "neighborhood_en"
+                               }, {
+                                   "data": "owner_name"
+                               }, {
+                                   "data": "amount"
+                               }, {
+                                   "data": "payment_type"
+                               }, {
+                                   "data": "payment_number"
+                               }, {
+                                   "data": "payment_note"
+                               }, {
+                                   "data": "payment_date"
+                               }, {
+                                   "data": "payment_year"
+                               }, {
+                                   "data": "admin_transaction_date"
+                               }, {
+                                   "data": "admin_name"
+                               }
+                       ],
+   
+                       fnRowCallback: function (row, data, iDisplayIndex, iDisplayIndexFull) {
+                           $(row).data('id', data.id);
+                       } #}
+                   });
+   
+                   //payTable.order([9, 'desc']);
+   
+                        getAllYearsBillsAndPaymentsForUser();
+   
+   
+   var validToSubmit = false;
+   
+   csrf_token = $("meta[name=csrf_token]").attr("content");
+   updateArr = {};
+   postArr = [];
+   var date = new Date(),
+       month = date.getMonth(),
+       year = getCalenderDate();
+   // console.log(site['uri']['public'] + '/getUnits/all');
+   //new
+   $.ajax({
+       "url": site['uri']['public'] +'/getUnitss/all',
+       type: "get",
+       dataType: 'json'
+   }).done(function(unitsFinance) {
+       payments_data = unitsFinance;
+       fillRepare(payments_data);
+        manageUnitBills();
+   }).fail(function(err) {
+   
+       $("#billDiv tbody").append('<tr><td class="no-result" colspan="20"> no units found... </td> </tr>');
+   })
+   
+   
+   });
+   
+   function fillRepare(unitsFinance) {
+   
+   for (var unit in unitsFinance) {
+       console.log(unitsFinance[unit]);
+       fillPage(unitsFinance[unit]);
+   
+   
+   }
+   }
+   
+   
+   
+   function fillPage(unitData) {
+   // for loop to fill the tds from Objects (Params)
+   $('#billDiv ').append(
+   
+       "<tr id='unitRow" + unitData.unit_Id + "' data-valid='false' data-userId='" + unitData.unit_owner + "' data-unitId=" + unitData.unit_Id + ">" +
+        "<td class='inputs1 rawabocode' id='rawabi_Code" + unitData.unit_Id + "'></td>" +
+       "<td class='inputs1  neighborhood' id='topo_Code" + unitData.unit_Id + "'></td>" +
+       "<td  class='inputs1 finance-type'>" +
+   
+       "<p>Bills:</>" +
+       "<div class='sepration-line'></div>" +
+       "<p>Payments:</p>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_1_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_1  form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user' readonly>" +
+       "<input  id='p_1_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input   id='b_2_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_2  form-control bill-amount unit-bill " + unitData.unit_Id + " pay_user'  readonly>" +
+       "<input   id='p_2_" + unitData.unit_Id + "' type='number'  class=' payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input   id='b_3_" + unitData.unit_Id + "' type='number'onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_3 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_3_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled >" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_4_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_4 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_4_" + unitData.unit_Id + "' type='number'  class=' payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_5_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_5 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_5_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_6_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_6 form-control bill-amount  unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_6_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_7_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_7 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_7_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_8_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_8 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_8_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_9_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_9 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input   id='p_9_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'   disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_10_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_10 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_10_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_11_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_11 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_11_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+       "<td class='inputs'>" +
+       "<input  id='b_12_" + unitData.unit_Id + "' type='number' onkeyup='updateBill(this)' data-unitid='" + unitData.unit_Id + "' class='bill_12 form-control bill-amount unit-bill" + unitData.unit_Id + " pay_user'  readonly='readonly'>" +
+       "<input  id='p_12_" + unitData.unit_Id + "' type='number'  class='payment-input form-control unit-payment" + unitData.unit_Id + "'  disabled>" +
+       "</td>" +
+   
+   
+       "<td>" +
+       "<div class='row-summary'>" +
+       "<div class='form-group '>" +
+       "<div class='input-group'>" +
+       "<span class='input-group-addon'></span>" +
+       "<input style='display:none' id='claculationinput" + unitData.unit_Id + "' type='text' class='form-control claculationinput' name='total' readonly='readonly'>" +
+       "<input  id='calaculationinputDue" + unitData.unit_Id + "' type='number' class='form-control' readonly='readonly'>" +
+       "<div></div>" +
+       "<input  id='calaculationinputPaid" + unitData.unit_Id + "' type='number' class='form-control' disabled>" +
+       "</div>" +
+       "</div></div>" +
+       "</td> </tr>"
+       );
+   
+   
+   
+   
+   totalPayments = 0;
+   paidPayments = 0;
+   unpaidPayments = 0;
+   
+   //fill table data
+   $('#rawabi_Code' + unitData.unit_Id).html(unitData.rawabi_code);
+       $('#topo_Code' + unitData.unit_Id).html(unitData.topocode);
+   
+   if (unitData.user_name != null) {
+       $('#display_Name' + unitData.unit_Id).html(unitData.user_name);
+   
+   }
+   
+   if (unitData.neighborhood != null) {
+       $('#neighborhood' + unitData.unit_Id).html(unitData.neighborhood);
+   
+   }
+   
+   if (unitData.payment) {
+   
+       if (unitData.payment[0].year == getCalenderDate()) {
+   
+           if (unitData.payment[0].amount_due) {
+   
+               $('#claculationinput' + unitData.unit_Id).val(unitData.payment[0].amount_due);
+   
+           }
+   {#             if (unitData.payment[0].remaining) {
+             console.log("fsafsafsafa"+unitData.payment[0].remaining)
+               $('#claculationinput3' + unitData.unit_Id).val(unitData.payment[0].remaining);
+   
+           }
+           if (unitData.payment[0].total_balance) {
+   
+               $('#claculationinput2' + unitData.unit_Id).val(unitData.payment[0].total_balance);
+   
+           } #}
+       }
+   }
+   }
+   
+   
+   function updatePaid(element) {
+   var paidValue = parseInt($('#' + element.id).val());
+   var currentId = $(element).attr('id');
+   var res = element.id.split("_");
+   var disabledInputs = $(".unit-payment" + res[1]);
+   
+   if ($('#' + element.id).val() == "") {
+       paidValue = 0;
+   }
+   
+   var orginalPaidValue = paidValue;
+   
+   if (isNaN($('#' + element.id).val()) || paidValue == 0) {
+       var changedBillFlag = false;
+       var currentRowBills = $(element).parent().closest('tr').find(".bill-amount");
+       $.each(currentRowBills, function(index, input) {
+           if ($(input).val() != $(input).data("orginal")) {
+               changedBillFlag = true;
+           }
+           if (paidValue != 0) {
+               $(input).attr("disabled", true);
+           }
+       });
+       $('#' + currentId).attr('title', 'Paid amount should be a number');
+       $('#' + currentId).tipsy({ trigger: 'manual', fade: true });
+       $('#' + currentId).tipsy("show");
+       setTimeout(function() { $('#' + currentId).tipsy("hide"); }, 2000);
+       $('#calaculationinputPaid' + res[1]).val(parseInt($("#calaculationinputPaid" + res[1]).data("orginal")));
+       $('#calaculationinputPaidAll' + res[1]).val(parseInt($("#calaculationinputPaidAll" + res[1]).data("orginal")));
+       if (paidValue != 0) {
+           $('#saveButton' + res[1]).removeClass('dashed-border');
+       }
+       else if (paidValue == 0 && changedBillFlag) {
+           $('#saveButton' + res[1]).addClass('dashed-border');
+       }
+       if (paidValue == 0) {
+           $.each(currentRowBills, function(index, input) {
+               $(input).attr("disabled", false);
+           });
+       }
+       $('#calaculationinputPaid' + res[1]).removeClass('dashed-border');
+       $('#calaculationinputPaidAll' + res[1]).removeClass('dashed-border');
+       $.each(disabledInputs, function(index, input) {
+           $(input).val($(input).data("orginal"));
+           if ($(input).val() == 0) {
+               $(input).val("");
+           }
+           $(input).removeClass("dashed-border");
+       });
+       return;
+   }
+   
+   var currentRowBills = $(element).parent().closest('tr').find(".bill-amount");
+   $.each(currentRowBills, function(index, input) {
+       $(input).attr("disabled", false);
+   });
+   
+   $('#' + currentId).tipsy("hide");
+   
+   $('#saveButton' + res[1]).addClass('dashed-border');
+   $('#calaculationinputPaid' + res[1]).addClass('dashed-border');
+   $('#calaculationinputPaidAll' + res[1]).addClass('dashed-border');
+   
+   $.each(disabledInputs, function(index, input) {
+       $(input).val($(input).data("orginal"));
+       if ($(input).val() == 0) {
+           $(input).val("");
+       }
+       $(input).removeClass("dashed-border");
+   });
+   
+   if (paidValue > 0) {
+       $.each(disabledInputs, function(index, input) {
+           var inputPaid = $(input).data("orginal");
+           if (inputPaid == "") {
+               inputPaid = 0;
+           }
+           inputPaid = parseInt(inputPaid);
+           var inputBill = $(this).parent().find(".bill-amount").val();
+           
+           if (inputPaid != inputBill) {
+               if (paidValue + inputPaid >= inputBill) {
+                   var flag = true;
+                   for (var i = 0; i < index; i++) {
+                       if ($("#b_" + (i + 1) + "_" + res[1]).val() != $("#p_" + (i + 1) + "_" + res[1]).val()) {
+                           flag = false;
+                       }
+                   }
+                   if (flag == false) {
+                       return false;
+                   }
+                   if (index != 11) {
+                       $(input).val(inputBill);
+                   }
+                   else {
+                      $(input).val(paidValue + inputPaid); 
+                   }
+                   paidValue = paidValue + inputPaid - inputBill;
+                   $(input).addClass("dashed-border");
+                   validToSubmit = true;
+               }
+               else {
+                   if (paidValue == 0) {
+                       return false;
+                   }
+                   var flag = true;
+                   for (var i = 0; i < index; i++) {
+                       if ($("#b_" + (i + 1) + "_" + res[1]).val() != $("#p_" + (i + 1) + "_" + res[1]).val()) {
+                           flag = false;
+                       }
+                   }
+                   if (flag == true) {
+                       $(input).val(paidValue + inputPaid);
+                       $(input).addClass("dashed-border");
+                       validToSubmit = true;
+                   }
+               }
+           }
+       });
+   }
+   else if (paidValue < 0) {
+       var foundPayment = true;
+   
+       $($(".unit-payment" + res[1]).get().reverse()).each(function(index, input) {
+           if (foundPayment == false) {
+               return false;
+           }
+           var inputPaid = $(input).data("orginal");
+           if (inputPaid == "") {
+               inputPaid = 0;
+           }
+           inputPaid = parseInt(inputPaid);
+           var inputBill = $(this).parent().find(".bill-amount").val();
+           if (inputPaid != 0 || inputPaid != "") {
+               foundPayment = false;
+               if (paidValue + inputPaid < 0) {
+                   $(input).val(0);
+                   paidValue = paidValue + inputPaid;
+                   for (var i = (12 - index) - 1; i >= 0; i--) {
+                       if (parseInt($("#p_" + (i + 1) + "_" + res[1]).val()) + paidValue <= 0) {
+                           paidValue = paidValue + parseInt($("#p_" + (i + 1) + "_" + res[1]).val());
+                           $("#p_" + (i + 1) + "_" + res[1]).val(0);
+                           $("#p_" + (i + 1) + "_" + res[1]).addClass("dashed-border");
+                           if (paidValue == 0) {
+                               break;
+                           }
+                       }
+                       else {
+                           paidValue = paidValue + parseInt($("#p_" + (i + 1) + "_" + res[1]).val());
+                           $("#p_" + (i + 1) + "_" + res[1]).val(parseInt(paidValue));
+                           $("#p_" + (i + 1) + "_" + res[1]).addClass("dashed-border");
+                           if (paidValue >= 0) {
+                               break;
+                           }
+                       }
+                   }
+               }
+               else {
+                   $(input).val(paidValue + inputPaid);
+               }
+               $(input).addClass("dashed-border");
+               validToSubmit = true;
+           }
+       });
+   }
+   else {
+       return;
+   }
+   
+   $('#calaculationinputPaid' + res[1]).val(parseInt($("#calaculationinputPaid" + res[1]).data("orginal")) + parseInt(orginalPaidValue));
+   
+   $('#calaculationinputPaidAll' + res[1]).val(parseInt($("#calaculationinputPaidAll" + res[1]).data("orginal")) + parseInt(orginalPaidValue));
+   }
+   
+   // function updateList(element) {
+   //     console.log("update list");
+   //     //console.log($('#' + element.id).val());
+   //     updateArr[element.id] = $('#' + element.id).val();
+   
+   
+   
+   // }
+   
+   function updateBill(element) {
+   
+   var billAmount = parseInt($(element).val());
+   var currentId = $(element).attr('id');
+   var id = currentId.split("_")[2];
+   console.log(billAmount);
+   
+   if(isNaN(billAmount) || billAmount < 0) {
+       $('#' + currentId).attr('title', 'Bills amount should be a postive number');
+       $('#' + currentId).tipsy({ trigger: 'manual', fade: true });
+       $('#' + currentId).tipsy("show");
+       setTimeout(function() { $('#' + currentId).tipsy("hide"); }, 2000);
+       $(element).removeClass('dashed-border');
+       $("#updatePaid_" + id).attr("disabled", "true");
+       $('#calaculationinputDue' + id).removeClass('dashed-border');
+       $('#calaculationinputDueAll' + id).removeClass('dashed-border');
+       $('#calaculationinputDue' + id).val($('#calaculationinputDue' + id).data("orginal"));
+       $('#calaculationinputDueAll' + id).val($('#calaculationinputDueAll' + id).data("orginal"));
+       validToSubmit = false;
+       var currentRowBills = $(element).parent().closest('tr').find(".bill-amount");
+   
+   
+   
+       $.each(currentRowBills, function(index, input) {
+           if ($(input).attr("id") != currentId) {
+               $(input).attr("disabled", true);
+           }
+           else {
+               $(input).attr("disabled", false);
+           }
+       });
+       return;
+   }
+   
+   var currentRowBills = $(element).parent().closest('tr').find(".bill-amount");
+   var amountDueSum = 0;
+   $.each(currentRowBills, function(index, value) {
+       amountDueSum += parseInt($(value).val());
+   });
+   
+   var index = $(element).parent().index();
+   var month = $(element).closest('tbody').prev('thead').find('th').eq(index).text();
+   billsMonth.push(month);
+   
+   var payment = $(element).attr('id').replace("b", "p");
+   var paymentAmount = isNaN(parseInt($('#' + payment).val())) ? 0 : parseInt($('#' + payment).val());
+   
+   if (billAmount < paymentAmount) {
+       $(element).removeClass('dashed-border');
+       $('#' + currentId).attr('title', 'Bills amount should be more than current payment amount');
+       $('#' + currentId).tipsy({ trigger: 'manual', fade: true });
+       $('#' + currentId).tipsy("show");
+       $("#updatePaid_" + id).attr("disabled", "true");
+       validToSubmit = false;
+       setTimeout(function() { $('#' + currentId).tipsy("hide"); }, 2000);
+       $('#saveButton' + id).removeClass('dashed-border');
+       $('#calaculationinputDue' + id).removeClass('dashed-border');
+       $('#calaculationinputDueAll' + id).removeClass('dashed-border');
+       $('#calaculationinputDue' + id).val($('#calaculationinputDue' + id).data("orginal"));
+       $('#calaculationinputDueAll' + id).val($('#calaculationinputDueAll' + id).data("orginal"));
+       $.each(currentRowBills, function(index, input) {
+           if ($(input).attr("id") != currentId) {
+               $(input).attr("disabled", true);
+           }
+           else {
+               $(input).attr("disabled", false);
+           }
+       });
+       return;
+   } else {
+       $.each(currentRowBills, function(index, input) {
+           $(input).attr("disabled", false);
+       });
+       var sumOfBills = 0;
+       var enabledBillsInputs = $(".unit-bill" + id);
+       $.each(enabledBillsInputs, function(index, input) {
+           sumOfBills += parseInt($(input).val());
+       });
+       $('#calaculationinputDue' + id).val(sumOfBills);
+       $('#calaculationinputDueAll' + id).val(parseInt($('#calaculationinputDueAll' + id).data("orginal")) + (sumOfBills - parseInt($('#calaculationinputDue' + id).data("orginal"))));
+       $('#saveButton' + id).addClass('dashed-border');
+       $('#calaculationinputDue' + id).addClass('dashed-border');
+       $('#calaculationinputDueAll' + id).addClass('dashed-border');
+       $(element).addClass('dashed-border');
+       $('#' + currentId).attr('title', '');
+       $('#' + currentId).tipsy("hide");
+       $("#updatePaid_" + id).removeAttr("disabled");
+       var currentRowBills = $(element).parent().closest('tr').find(".bill-amount");
+       var amountDueSum = 0;
+       $.each(currentRowBills, function(index, value) {
+           amountDueSum += parseInt($(value).val());
+       });
+   
+       $("#claculationinput" + id).val(amountDueSum);
+       validToSubmit = true;
+   }
+   
+   }
+   function manageUnitBills() {
+   var date = new Date(),
+       month = date.getMonth(),
+       year = getCalenderDate();
+   var unitBills = [];
+   var billsInfo = [];
+   var unitId = '';
+   $.each($("#billDiv tbody tr"), function() {
+       unitId += $(this).data('unitid') + "-";
+   
+   });
+   
+   unitId = unitId.slice(0, -1);
+   $.ajax({
+       "url": site['uri']['public'] + '/manageUnitBills/' + unitId + "/" + year,
+       type: "get",
+       dataType: 'json'
+   }).done(function(data) {
+       for (unitId in data) {
+           if (!isNaN(parseInt(unitId))){
+           var sumDue = 0;
+           var sumPaid = 0;
+           for (var i = 0; i < data[unitId].length; i++) {
+               sumDue += parseInt(data[unitId][i]);
+   
+               $("#b_" + (i + 1) + "_" + unitId).val(data[unitId][i]);
+               $("#b_" + (i + 1) + "_" + unitId).data("orginal", data[unitId][i]);
+               $("#b_" + (i + 1) + "_" + unitId).removeAttr("disabled")
+   
+           }
+   
+           $("#calaculationinputDue" + unitId).val(sumDue);
+           $("#calaculationinputDue" + unitId).data("orginal", sumDue);
+                           
+   
+           if (data['payment_' + unitId] != undefined) {
+               for (var i = 0; i < data['payment_' + unitId].length; i++) {
+   
+                   //sum += parseInt(data[unitId][i]);
+                   var paymentValue = data['payment_' + unitId][i];
+                   $("#p_" + (i + 1) + "_" + unitId).val(paymentValue == 0 ? "" : paymentValue);
+                   $("#p_" + (i + 1) + "_" + unitId).data("orginal", paymentValue);
+                   sumPaid += parseInt(paymentValue);
+   
+                   //$("#claculationinput" + unitId).val(sum);
+               }
+           }
+           else {
+               for (var i = 0; i < 12; i++) {
+                   $("#p_" + (i + 1) + "_" + unitId).val("");
+                   $("#p_" + (i + 1) + "_" + unitId).data("orginal", "");
+               } 
+           }
+           $("#calaculationinputPaid" + unitId).val(sumPaid);
+           $("#calaculationinputPaid" + unitId).data("orginal", sumPaid);
+           //alert("Unit: " + unitId + " Sum Due this year: " + sumDue + " \n Sum Paid this year: " + sumPaid);
+   
+       }
+       }
+       getAllYearsBillsAndPayments();
+   
+   });
+   }
+   function getAllYearsBillsAndPayments() {
+   var date = new Date(),
+       month = date.getMonth(),
+       year = getCalenderDate();
+   var unitId = '';
+   $.each($("#billDiv tbody tr"), function() {
+       unitId += $(this).data('unitid') + "-";
+   
+   });
+   
+   unitId = unitId.slice(0, -1);
+   $.ajax({
+       "url": site['uri']['public'] + '/manageUnitBillsAll/' + unitId + "/" + year,
+       type: "get",
+       dataType: 'json'
+   }).done(function(data) {
+       for (unitId in data) {
+           if (!isNaN(parseInt(unitId))){
+   
+           var billAll = data[unitId];
+           var paymentAll = 0;
+           if (data['payment_' + unitId] != undefined) {
+               paymentAll = data['payment_' + unitId];
+           }
+           $("#calaculationinputDueAll" + unitId).val(billAll);
+           $("#calaculationinputPaidAll" + unitId).val(paymentAll);
+           $("#calaculationinputDueAll" + unitId).data("orginal", billAll);
+           $("#calaculationinputPaidAll" + unitId).data("orginal", paymentAll);
+                       
+   
+           //alert("Unit: " + unitId + " Sum Due all years: " + billAll + " \n Sum Paid all years: " + paymentAll);
+       }
+       }
+   });
+   }
+   $('#dateFilter').on('change dp.change', function() {
+   getAllYearsBillsAndPaymentsForUser();
+   $('#billDiv tbody').html("");
+   fillRepare(payments_data);
+   manageUnitBills();
+   
+   });
+   
+   //Dawnload csv
+   
+   jQuery.fn.tableToCSV = function() {
+   
+   var clean_text = function(text){
+       text = text.replace(/"/g, '""');
+       return '"'+text+'"';
+   };
+   
+   $(this).each(function(){
+           var table = $(this);
+           var caption = $(this).find('caption').text();
+           var title = [];
+           var rows = [];
+   
+   
+           $(this).find('tr').each(function(){
+               var data = [];
+               $(this).find('th').each(function(){
+                   var text = clean_text($(this).text());
+                   title.push(text);
+                   });
+   
+              $(this).find('td').each(function(){
+                var text = [];
+                $(this).find("input").each(function() {
+   
+                    text.push(this.value);
+                   });
+   
+                var t="";
+           // if array is empty it means that there is no input text
+               if (typeof text !== 'undefined' && text.length > 0)
+               {
+                    jQuery.each( text, function( i, val ) {
+                     t += val + "/";
+                   });
+                    // to remove last "/" char
+                    t = t.replace(/\/$/,'');
+               }
+               else
+               {
+                   t = clean_text($(this).text());
+                   // to remove ":" char from middle of string
+                   t = t.replace(/\:/,'/');
+               }
+              data.push(t); 
+         });
+   
+        data = data.join(",");
+        rows.push(data);
+   });
+           title = title.join(",");
+           rows = rows.join("\n");
+   
+           var csv = title + rows;
+           var uri = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+           var download_link = document.createElement('a');
+           download_link.href = uri;
+           var ts = new Date().getTime();
+           if(caption==""){
+               download_link.download = ts+".csv";
+           } else {
+               download_link.download = caption+"-"+ts+".csv";
+           }
+           document.body.appendChild(download_link);
+           download_link.click();
+           document.body.removeChild(download_link);
+   });
+   
+   };
+   
+</script>
+{% endblock %}

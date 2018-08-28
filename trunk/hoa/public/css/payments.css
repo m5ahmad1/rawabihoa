@@ -1,0 +1,7 @@
+tr.redClass td:last-child {
+    color: red;
+}
+
+tr.greenClass td:last-child { 
+    color: green;
+}

@@ -1,0 +1,313 @@
+{% extends "layouts/layout-dashboard.twig" %} {% set page_group = "SharedFiles" %} {# Set page properties (page.*) here. #} {% block page %} {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, but BEFORE the page itself is rendered. #} {% set page = page | merge({ "title" : "Shared Files", "description" : "" }) %} {{ parent() }} #} {% endblock %} {% block content %}
+
+<link rel="stylesheet" href="{{site.uri.public}}/css/bootstrap-datepicker.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/responsive.dataTables.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/dataTables.bootstrap.min.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/datepicker.css" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.min.css" />
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.min.css" />
+<link rel="stylesheet" href="{{site.uri.public}}/css/unitindex.css" type="text/css">
+<link rel="stylesheet" href="{{site.uri.public}}/css/timeline.css" type="text/css">
+
+<div class="row">
+   <div class="col-xs-12">
+      <div class="panel panel-primary">
+      
+         <div class="container-fluid">
+
+               <form class="form-inline">
+        
+               <div class="form-group">
+            <h2>Shared Files</h2>
+            </div>
+            </form>
+          
+              <div id='date'  class='header-datePicker'>
+                     <label class="col-xs-5 col-md-1 col-sm-4 padding-top-5px padding-left "  style="margin-top:33px" for="totalAptsSelect" > Date: </label>
+                     <div class="col-xs-7 col-sm-3 no-padding-right" style="margin-top:30px">
+                        <div class='input-group date ' id='dateFilter' style="padding-bottom:10px;ss">
+                           <input type='text' class="form-control " data-date-view-mode="years" />
+                           <span class="input-group-addon">
+                           <span class="glyphicon glyphicon-calendar"></span>
+                           </span>
+                         </div> 
+                        </div>
+                     </div>
+            <div class="panel panel-default">
+               <div class="panel-body">
+               </div>
+               {% if files|length == 0 %}
+                   <div class = "DivNoFileFounded">No Files Here... </div>
+                {% endif %}
+            
+                {% if files|length != 0 %}
+                <div class="DivFortimeLineJQUE">
+                 <section class="timeline">
+                  <ul>
+                     {% for key, value in files %}
+                     {% set FileExt = value.file_name|split('.')|last %}
+                     {% set FileName = value.file_name|split('_', 2)[1] %}
+                     {% set DisplayName = value.DisplayName %}             
+                     <li>
+                        <div class = "timelineUploadded table-index-{{key}} ">
+                           <time class="TimeFileYear">Posted Date: {{value.PostedDate}}</time><br> 
+                           {% if FileExt == 'png' or FileExt == 'jpg' or FileExt == 'gif' %}
+                           <span class="DivForFile">
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/icons8-xlarge-icons-100.png"  width="50" height="50">
+                           </a>
+                           <a   href= "uploads/{{value.file_name}}"  download >
+                           {{value.DisplayName}} 
+                           </a>
+                           </span>
+                           {% endif %}
+                           {% if FileExt == 'pdf' %}
+                           <span class="DivForFile">
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/icons8-pdf-100.png"  width="50" height="50">
+                           </a>
+                           <a   href= "uploads/{{value.file_name}}"  download >
+                            {{DisplayName}}  
+                           </a> 
+                           </span>    
+                           {% endif %}
+                           {% if FileExt == 'docx' or FileExt == 'doc'%}
+                           <span class="DivForFile">
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/icons8-microsoft-word-100.png"  width="50" height="50">
+                           </a>
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           {{DisplayName}}   
+                           </a>
+                           </span>
+                           {% endif %}
+                           {% if FileExt == 'zip' or FileExt == 'rar' or FileExt == 'tar' or FileExt == 'gzip'  or FileExt == 'gz' %}
+                           <span class="DivForFile">
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/zip-outline.png"  width="50" height="50">
+                           </a>
+                           <a   href= "uploads/{{value.file_name}}"  download >
+                             {{DisplayName}}  
+                           </a>
+                           </span>
+                           {% endif %}
+                           {% if FileExt == 'txt' %}
+                           <span class="DivForFile">
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/icons8-xls-100.png"  width="50" height="50">
+                           </a>
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                             {{DisplayName}}  
+                           </a>
+                           </span>
+                           {% endif %}
+                           {% if FileExt == 'ppt' %}
+                           <span class="DivForFile">
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/icons8-microsoft-publisher-100.png"  width="50" height="50">
+                           </a>
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                             {{DisplayName}}  
+                           </a>
+                           </span>
+                           {% endif %}
+                           {% if FileExt == 'xls' or  FileExt == 'xlsx' %}
+                           <span class="DivForFile">
+                           <a href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/icons8-microsoft-excel-100.png"  width="50" height="50">
+                           </a>
+                           <a  href= "uploads/{{value.file_name}}"  download >
+                           {{DisplayName}}  
+                           </a>
+                           </span>
+                           {% endif %}
+                           {% if FileExt == 'htm' or FileExt == 'php' or FileExt == 'js' or FileExt == 'css' or FileExt == 'sql' %}
+                           <span class="DivForFile">
+                           <a href= "uploads/{{value.file_name}}"  download >
+                           <img border="0" src="{{site.uri.public}}/images/code-file.png"  width="50" height="50">
+                           </a>
+                           <a href= "uploads/{{value.file_name}}"  download >
+                             {{DisplayName}}  
+                           </a>
+                           </span>
+                           {% endif %}
+                        </div>
+                     </li>   
+                     {% endfor %}
+                  </ul>
+               </section>
+            {% endif %}
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+{% include 'components/common/spinnerLoader.twig' %}
+{% endblock %} 
+
+{% block page_scripts %}
+ <script>
+    $('#dateFilter').datetimepicker({
+        //debug: true,
+        minDate: new Date(2017, 0, 1),
+        defaultDate: new Date(),
+        dayViewHeaderFormat: 'YYYY',
+        format: 'YYYY',
+        viewMode: 'years',
+        allowInputToggle: true
+    });
+
+    function getCalenderDate() {
+        var date = $('#dateFilter').data("DateTimePicker").date().toDate(),
+            year = date.getFullYear(),
+            d = new Date(year),
+            day = d.getDate();
+
+        return year;
+    }
+
+
+    $('#dateFilter').on('change dp.change', function() {
+      jQuery('.DivFortimeLineJQUE').each(function() {
+          jQuery(this).html("");
+      });
+      var date = new Date(),
+          month = date.getMonth(),
+          year = getCalenderDate();
+
+      $.ajax({
+          "url": site['uri']['public'] + '/GetAllFilesInYear/' + year,
+          type: "get",
+          dataType: 'json',
+          beforeSend: function() {
+              $('.loader-modal-lg').modal('show');
+          },
+      }).done(function(files) {
+          $('.loader-modal-lg').modal('hide');
+          //dispaly No Files 
+          if (files.length == 0) {
+              jQuery('.DivFortimeLineJQUE').each(function() {
+                jQuery(this).html('<div class = "DivNoFileFounded">No Files Here... </div>');
+              });
+          }
+
+          if (files.length != 0) {
+              $('.DivFortimeLineJQUE').append(
+                  "<section class='timeline'>" + "<ul>"
+              );
+
+              for (var i = 0; i < files.length; i++) {
+
+                  var DisplayName = files[i]['DisplayName'];
+                  var FileNames = files[i]['file_name'];
+                  // to get FileName dateFilterithout Time
+                  var FileNameIndex = FileNames.lastIndexOf("_") + 1;
+                  var FileName = FileNames.substr(FileNameIndex);
+                  var Displayname = DisplayName.substr(DisplayName.indexOf("_") + 1)
+                  //to get Extention 
+                  var extension = FileName.substr((FileName.lastIndexOf('.') + 1));
+                  var pic;
+
+                  switch (extension) {
+                      case 'jpg':
+                      case 'png':
+                      case 'gif':
+                          pic = "<a href=uploads/" + files[i]['file_name'] + " download>" +
+                              "<img border='0' src='{{site.uri.public}}/images/icons8-xlarge-icons-100.png'  width='50' height='50'>" + "</a>" + " &nbsp;"
+
+                          break;
+                      case 'zip':
+                      case 'rar':
+                      case 'tar':
+                      case 'gzip':
+                      case 'gz':
+                          pic = " &nbsp;" + "<a href=uploads/" + files[i]['file_name'] + " download>" +
+                              "<img border='0' src='{{site.uri.public}}/images/zip-outline'  width='50' height='50'>" + "</a>" + " &nbsp;"
+                          break;
+                      case 'pdf':
+                          pic = "<a href=uploads/" + files[i]['file_name'] + " download>" +
+                              "<img border='0' src='{{site.uri.public}}/images/icons8-pdf-100.png'  width='50' height='50'>" + "</a>" + " &nbsp;"
+
+                          break;
+                      case 'htm':
+                      case 'php':
+                      case 'sql':
+                      case 'js':
+                      case 'css':
+
+                          pic = "<a href=uploads/" + files[i]['file_name'] + " download>" +
+                              "<img border='0' src='{{site.uri.public}}/images/code-file.png'  width='50' height='50'>" + "</a>" + " &nbsp;"
+
+                      case 'xls':
+                      case 'xlsx':
+
+                          pic = "<a href=uploads/" + files[i]['file_name'] + " download>" +
+                              "<img border='0' src='{{site.uri.public}}/images/icons8-microsoft-excel-100.png'  width='50' height='50'>" + "</a>" + " &nbsp;" + " &nbsp;"
+                          break;
+
+                      case 'docx':
+                      case 'doc':
+                          pic = "<a href=uploads/" + files[i]['file_name'] + " download>" +
+                              "<img border='0' src='{{site.uri.public}}/images/icons8-microsoft-word-100.png'  width='50' height='50'>" + "</a>" + " &nbsp;"
+                          break;
+
+                      case 'ppt':
+                          pic = "<a href=uploads/" + files[i]['file_name'] + " download>" + "<img border='0' src='{{site.uri.public}}/images/icons8-microsoft-publisher-100.png'  width='50' height='50'>" + "</a>" + " &nbsp;"
+
+                          break;
+
+                      case 'txt':
+                          pic = "<a href=uploads/" + files[i]['file_name'] + " download>" +
+                              "<img border='0' src='{{site.uri.public}}/images/icons8-xls-100.png'  width='50' height='50'>" +
+                              "</a>" + " &nbsp;"
+                          break;
+
+                  }
+                    //for fill timeline 
+                  $('.timeline ul').append(
+                      "<li class='in-view'>" + "<div class = 'timelineUploadded table-index-{{key}}'><time class='TimeFileYear'>Posted Date: " + files[i]['PostedDate'] + "</time><br>" + "<span class='DivForFile'>" + pic + "<a href=uploads/" + files[i]['file_name'] + " download>" + DisplayName + "</a>"+
+                      "</li>" + "</ul>" + "</section>"
+                  );
+              }
+          }
+      });
+  });
+
+    //----- TimeLine Script
+
+    $(function() {
+
+        'use strict';
+
+        // define variables
+        var items = document.querySelectorAll(".timeline li");
+
+        // check if an element is in viewport
+        // http://stackoverflow.com/questions/123999/how-to-tell-if-a-dom-element-is-visible-in-the-current-viewport
+        function isElementInViewport(el) {
+            var rect = el.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+
+        function callbackFunc() {
+            for (var i = 0; i < items.length; i++) {
+                if (isElementInViewport(items[i])) {
+                    items[i].classList.add("in-view");
+                }
+            }
+        }
+
+        // listen for events
+        window.addEventListener("load", callbackFunc);
+        window.addEventListener("resize", callbackFunc);
+        window.addEventListener("scroll", callbackFunc);
+
+    })();
+</script>
+
+{% endblock %}

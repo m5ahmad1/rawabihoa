@@ -1,0 +1,454 @@
+{% extends "layouts/layout-jumbotron.twig" %}
+{% set page_group = "loggedout" %}
+
+{% block page %}
+    {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, 
+    but BEFORE the page itself is rendered. #}
+    
+    {% set page = page | merge({
+        "title"       : "Register",
+        "description" : "Register for a new UserFrosting account.",
+        "active_page" : "account/register"
+    }) %}    
+
+    {{ parent() }}
+    <link rel="stylesheet" href="{{site.uri.public}}/css/chosen.min.css" type="text/css">
+    <link rel="stylesheet" href="{{site.uri.public}}/css/spacess.css" type="text/css">
+
+
+{% endblock %}
+
+{% block content %}
+
+
+<div class="signup-page">
+    <div class="rawabi-home-title text-center center-block">
+        <h2 class="site-title">Let's Get started!</h1>
+        {% include 'components/common/alerts.twig' %}
+        <form name="register" method="post" action="{{site.uri.public}}/account/register" class="form-horizontal login-signup">
+            <div class="signup-form">
+                {# <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            {# <label class="control-label  col-sm-4">Username</label> #}
+                            {# <div class="col-sm-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-fw fa-edit"></i></span>
+                                    <input type="text" class="form-control" name="user_name" autocomplete="off" value="" placeholder="User name">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> #} 
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            {# <label class="control-label col-sm-4">Email</label> #}
+                            <div class="col-sm-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
+                                    <input type="text" class="form-control" name="email" placeholder="Email address" value="" id="email">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            {# <label class="control-label col-sm-4">Display Name</label> #}
+                            <div class="col-sm-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-fw fa-edit"></i></span>
+                                    <input type="text" class="form-control" name="display_name" autocomplete="off" value="" placeholder="Full name" id="name">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-fw fa-edit"></i></span>
+                                    <input type="number" class="form-control" name="phone_number" autocomplete="off" value="" placeholder="Phone Number" id="phone_number">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                		  
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            {# <label class="control-label col-sm-4">Password</label> #}
+                            <div class="col-sm-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-fw fa-key"></i></span>
+                                    <input type="password" class="form-control" name="password" autocomplete="off" value="" placeholder="8-50 characters" passwordCheck="passwordCheck" id="pass">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            {# <label class="control-label col-sm-4">Confirm password</label> #}
+                            <div class="col-sm-12">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-fw fa-key"></i></span>
+                                    <input type="password" class="form-control" name="passwordc" autocomplete="off" value="" placeholder="Re-enter your password" id="re-pass">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="unit_id" id="unit_id" value="">
+                <div class="appartment-container">
+                    <fieldset class="appartment" data-index='0'  >
+                      <h4 style="text-align: center; font-weight: bold; font-size:24px;">Appartment:</h4>
+                      <div class="row">
+                    <div class="col-sm-12 ">
+                          <select id="neighboorhood" name="neighboorhood"  class="neighboorhood chosen form-control resize2" >
+                            <option value="0" >Select Neighboorhood</option>
+                            {% for key, value in UnassignedNeighborhood  %}
+                                <option value="{{ value.id }}" >{{ value.neighborhood_en }} - {{ value.neighborhood_ar }} </option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="row hide up">
+                    <div class="col-sm-12 " >
+                          <select  id ="rawabicode" name="rc" class="form-control  rc chosen resize "
+                          P >
+                            <option value="0">Select Rawabi Code</option>
+                          </select>
+                        </div>
+                    </div>
+                           <div class="row hide down ">
+                    <div class="col-sm-12 ">
+                          <select id ="tabucode" name="tc" class="form-control tc  resize1" disabled 
+                           data-placeholder="Tupo Code">
+                          </select>
+                        </div>
+                    </div>
+                </div>
+                        
+
+                    </fieldset>
+             <i  title="add new appartment" class=" addicon top add-new-appartment fa fa-plus-circle" aria-hidden="true"   data-toggle="tooltip" title="add-new-appartment"></i>
+    
+                </div>
+                {% if site.enable_captcha %}
+                <div class="row">
+                    <div class="col-sm-12 between">
+                        <div class="form-group">
+                            {# <label class="control-label col-sm-4">Confirm captcha code</label> #}
+                            <div class="col-sm-6">
+                                <div class="input-group"><span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
+                                    <input type="text" class=" form-control" id="captcha-input" name="captcha" autocomplete="off" value="" placeholder="Captcha Text Only" >
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <img class="captchasize" src="{{captcha_image}}" id="captcha" data-target="#captcha-input">
+                                 <a  id="reload" value="Reload" class="large fa fa-refresh"  onclick="reloadfunction()"></a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if site.show_terms_on_register %}
+                <div class="row">
+                    <div class="col-sm-12 terms" style="color:white;">
+                         By registering an account with {{site.site_title}}, you accept the <a  href="#" data-toggle="modal" data-target="#tos" style="font-weight:bold">terms and conditions</a>.
+                    </div>
+                </div>
+                {% endif %}
+                <br>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div>  
+                            <button type="submit" name="btn_register" class="btn btn-success form-btn" id="Submit" >Register</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapse">
+                  <label>Spiderbro: Don't change me bro, I'm tryin'a catch some flies!</label>
+                  <input name="spiderbro" id="spiderbro" value="http://"/>
+                </div>
+            </div>          
+        </form>
+        <button type="submit" name="BackToHome" class="btn btn-info form-btn" id="BackToHome" >Back To Home </button>
+
+    </div>
+
+</div>
+  <!-- Modal -->
+   <div class="modal fade" id="RegSuccess" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+                <h4 class="modal-title custom_align text-center" id="Heading">Successfully Registered</h4>
+        </div>
+         <div class="modal-body">
+You have successfully registered. An admin will review your registration data and send you an activation email. Please wait while your data is being review and check your email to activate your account. The process might take up to 2 days.        </div>
+        <div class="modal-footer ">
+            <button type="button" class="btn btn-success" id="RegButton">Go To Home Page </button>
+        </div>
+    </div>
+</div>                               
+
+{% endblock %}
+
+{% block fragments %}
+    <div id="tos" class="modal fade" tabindex="-1" data-width="760" style="display: none;">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h4 class="modal-title" style="font-weight:bold;">Terms and Conditions for {{site.site_title}}</h4>
+        </div>
+        <div class="modal-body">
+            {% include 'components/common/tos.twig' %}	
+        </div>
+        <div class="modal-footer">
+            <button type="button" data-dismiss="modal" class="btn btn-primary">Got it!</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block page_scripts %}
+    <script type="text/javascript" src="{{site.uri.public}}/js/chosen.jquery.min.js"></script>
+    <style type="text/css">
+        html, body {
+            height: inherit !important;
+        }
+    </style>
+    <script>
+
+
+    jQuery("#Submit").prop('disabled', true);
+    jQuery(".btn_register").prop('disabled', true);
+    $( ".add-new-appartment" ).hide();
+   
+
+        jQuery.validator.addMethod("passwordCheck",
+            function(value, element, param) {
+                if (this.optional(element)) {
+                    return true;
+                } else if (!/[A-Z a-z]/.test(value)) {
+                    return false;
+                } 
+
+                return true;
+            },
+            "Your Password must have at least one character");
+        $(document).ready(function() {
+         var arrayss = new Array();
+            
+            $(".chosen").chosen();
+     
+
+            $(".appartment-container").on("change",".neighboorhood",function(){
+                var selector  = $(this).closest('.appartment');
+                var selected = $(this).val();
+                selector.find(".rc option[value!='0']").remove();
+                selector.find(".tc option[value!='0']").remove();
+
+                updateChosen(selector.find(".rc"));
+                updateChosen(selector.find(".tc"));
+
+                if(selected != 0){
+                    $.ajax({
+                    "url": site['uri']['public'] + '/getRCodeByNeighboorhood/'+selected,
+                    type: "get",
+                    dataType: 'json'
+                    }).done(function(result) {
+                
+                        for(row in result){
+                            selector.find(".rc").append($('<option>', { 
+                                value: result[row].rawabicode,
+                                text :"Rawabi Code : " +  result[row].rawabicode 
+                            }));
+                        }
+                        selector.find(".rc").closest('.row').removeClass('hide');
+                        updateChosen(selector.find(".rc"));
+                    });
+                }
+                
+            });
+
+            $(".appartment-container").on("change",".rc",function(){
+                var selector  = $(this).closest('.appartment');
+                var selected = $(this).val();
+                 selector.find(".tc option[value!='0']").remove();
+
+                updateChosen(selector.find(".tc"));
+
+                if(selected != 0){
+                    $.ajax({
+                    "url": site['uri']['public'] + '/getTCodeByRCode/'+selected,
+                    type: "get",
+                    dataType: 'json'
+                    }).done(function(result) {
+                        for(row in result){
+                            selector.find(".tc").append($('<option>', { 
+                                value: result[row].id,
+                                text : " Tupo Code : " + result[row].topocode
+                               
+                            }));
+                            
+                        
+                        }
+
+
+                        selector.find(".tc").closest('.row').removeClass('hide');
+                        updateChosen(selector.find(".tc"));
+                        id = selector.find(".tc option[value!='0']").val();
+
+                    });
+                }
+    		 $( ".add-new-appartment" ).show();
+             jQuery("#Submit").prop('disabled', false);     
+            });
+
+            $(".add-new-appartment").click(function(){
+                var appartment_clone = $(".appartment-container .appartment").first().clone();
+                var last_index = parseInt($(".appartment-container .appartment").last().attr("data-index"));
+                var selector  = $(appartment_clone);
+                selector.attr("data-index",last_index);
+                $(".appartment-container").append(appartment_clone);     
+                selector.append(" <i  title='Remove new appartment' class=' addicon top remove-new-appartment fa fa-minus-circle' aria-hidden='true'   data-toggle='tooltip' title='Remove-new-appartment'></i>");    
+                selector.find(".chosen").chosen();
+                arrayss.push(id);
+
+                $(".remove-new-appartment").on("click",function(e){ 
+                 selector.remove().last().end();                
+                });
+
+            });
+
+            
+            $(".btn_register").on("click",function(e){
+                e.preventDefault();
+                e.stoppropagation();
+            });
+
+            function updateChosen(selector){
+                $(selector).chosen("destroy");
+                $(selector).chosen();
+            }
+
+            // Process form 
+            ufFormSubmit(
+                $("form[name='register']"),
+                {{ validators | raw }},
+                $("#userfrosting-alerts"),
+                function(data, statusText, jqXHR) {
+                    // Forward to login page on success
+                    $('#RegSuccess').modal('show');
+                    $('#RegSuccess').on('click', '#RegButton', function() {
+                        window.location.replace(site['uri']['public']);
+                    
+                });
+                    // notifyMe();
+                },
+                function() {
+                    // Reload captcha
+                    $("#captcha").captcha();
+                },
+                function() {
+                    var appartments = "";
+                   
+                    var FirstUnit = $(".appartment .tc ").val();      
+                    appartments = FirstUnit +"," + arrayss;        
+                    $("#unit_id").val(appartments);
+                 
+                }
+            );
+
+
+        });    
+        
+        // This plugin reloads the captcha in the specified field
+        (function( $ ) {
+            $.fn.captcha = function() {
+                var field = $(this);
+                console.log("Reloading captcha");
+                
+                var img_src = site['uri']['public'] + "/account/captcha?" + new Date().getTime();
+                
+                return $.ajax({  
+                  type: "GET",  
+                  url: img_src,  
+                  dataType: "text"
+                }).then(function(data, statusText, jqXHR) {  // Pass the deferral back
+                    field.attr('src', data);
+                    var target = field.data('target');
+                    $(target).val("");
+                    return data;
+                });
+            };
+        }( jQuery ));        
+
+// function notifyMe() {
+//   if (!("Notification" in window)) {
+//     alert("This browser does not support desktop notification");
+//   }
+//   else if (Notification.permission === "granted") {
+//         var options = {
+//                 body: "Please wait the activation email from the admin",
+//                 icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+
+//                              };
+
+//           var notification = new Notification("Notification",options);
+//                       setTimeout(notification.close.bind(notification), 4000);
+
+//   }
+//   else if (Notification.permission !== 'denied') {
+//     Notification.requestPermission(function (permission) {
+//       if (!('permission' in Notification)) {
+//         Notification.permission = permission;
+//       }
+    
+//       if (permission === "granted") {
+//         var options = {
+//               body: "Please wait the activation email  from the admin",
+//               icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+//           };
+//         var notification = new Notification("Notification",options);
+//                     setTimeout(notification.close.bind(notification), 4000);
+
+
+//       }
+//     });
+// }
+// }
+
+function reloadfunction ()
+{
+                console.log("Reloading captcha");
+                
+                var img_src = site['uri']['public'] + "/account/captcha?" + new Date().getTime();
+                
+                return $.ajax({  
+                  type: "GET",  
+                  url: img_src,  
+                  dataType: "text"
+                }).then(function(data, statusText, jqXHR) {  // Pass the deferral back
+                   $("#captcha").captcha();
+
+                    return data;
+                });
+      
+       }
+
+
+           $('#BackToHome').on('click', function() {
+            window.location.replace(site['uri']['public']);
+                    
+     });
+    </script>
+
+{% endblock %}

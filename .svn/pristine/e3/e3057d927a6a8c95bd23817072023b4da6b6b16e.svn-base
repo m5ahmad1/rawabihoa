@@ -1,0 +1,684 @@
+<?php
+
+namespace UserFrosting;
+
+use \Illuminate\Database\Capsule\Manager as Capsule;
+
+class CUnit extends UFModel
+{
+
+    protected static $_table_id = "payments";
+
+    public function updateFixedBill($post)
+    {
+
+        $year           = $post['year'];
+        $billAmount     = $post['bill'];
+        $extraFees      = $post['extraFees'];
+        $interestAmount = $post['interestAmount'];
+        $bill_Id        = isset($post['id']) ? $post['id'] : null;
+
+        $link_table_fixed_bills_op = Database::getSchemaTable('fixed_bills_operations')->name;
+
+        $bill = Capsule::table($link_table_fixed_bills_op)->where('id', $bill_Id)->get();
+
+        if ($bill == null) {
+            $bill = Capsule::table($link_table_fixed_bills_op)->insertGetId(['year' => $year, 'billAmount' => $billAmount, 'extraFees' => $extraFees, 'interestAmount' => $interestAmount]);
+
+        } else {
+            $bill = Capsule::table($link_table_fixed_bills_op)->where('id', $bill_Id)->update(['billAmount' => $billAmount, 'extraFees' => $extraFees, 'interestAmount' => $interestAmount]);
+
+        }
+
+        return $bill;
+    }
+
+    public function getFixedBill($year)
+    {
+        $defaultFixedBillIfNotAssigned = "200";
+        $link_table_fixed_bills_op = Database::getSchemaTable('fixed_bills_operations')->name;
+        $fixed_bill                = Capsule::table($link_table_fixed_bills_op)->where('year', $year)->select('billAmount')->get();
+        if ($fixed_bill == null) {
+            $currYear = date('Y');
+            if($year > $currYear || $year < 2017) {
+                return null;
+            }
+            Capsule::table($link_table_fixed_bills_op)->insertGetId(['year' => $year,'billAmount' => $defaultFixedBillIfNotAssigned]);
+            return $defaultFixedBillIfNotAssigned;
+        } else {
+            return $fixed_bill[0]['billAmount'];
+        }
+
+    }
+    public function getFixedBillAll()
+    {
+        //$link_table_fixed_bills = Database::getSchemaTable('fixed_bills')->name;
+        $link_table_fixed_bills_op = Database::getSchemaTable('fixed_bills_operations')->name;
+        $fixed_bill                = Capsule::table($link_table_fixed_bills_op)->get();
+
+        if ($fixed_bill != null) {
+            return json_encode($fixed_bill);
+        }
+    }
+    public function assignFixedBills($post)
+    {
+        $link_table_bills = Database::getSchemaTable('bills')->name;
+        $billsId          = [];
+        $unitBill         = [];
+
+        foreach ($post['Bills'] as $key => $value) {
+            # code...
+            $unit_id = $value['unitId'];
+            $bill    = Capsule::table($link_table_bills)->where('unit_id', $unit_id)->get();
+            if ($bill == null) {
+                foreach ($value['bill'] as $key => $value) {
+
+                    $date     = $value['date'];
+                    $dateStrr = strtotime($date);
+                    $BillDate = date('Y-m-d', $dateStrr);
+
+                    $fixed_bill = $value['billAmount'];
+
+                    $bills = Capsule::table($link_table_bills)->insertGetId(['billAmount' => $fixed_bill,
+                        'billDate'                                                            => $BillDate, 'unit_id' => $unit_id]);
+                    array_push($billsId, $bills);
+
+                }
+
+                array_push($unitBill, array('unitId' => $unit_id, 'bill_id' => $billsId));
+                $billsId = [];
+            } else {
+
+                return json_encode(Capsule::table($link_table_bills)->
+                        select(array(
+
+                        Capsule::raw('group_concat(id) as billId ,
+                    group_concat(billAmount) as billAmount ,
+                    group_concat(billDate) as billDate,group_concat(DISTINCT unit_id) as unitId')))
+                        ->groupBy('unit_id')->get());
+
+            }
+        }
+
+        return json_encode($unitBill);
+
+       
+    }
+
+    public function updateFinance($post)
+    {
+
+        $paymentArr  = isset($post['payment']) ? $post['payment'] : null;
+        $paymentAttr = isset($post['paymentAttr']) ? $post['paymentAttr'] : null;
+        $billArr     = isset($post['bills']) ? $post['bills'] : null;
+        $billsAttr = isset($post['billsAttr']) ? $post['billsAttr'] : null;
+        $changedData = isset($post['changedData']) ? $post['changedData'] : null;
+
+        $selected_year = isset($post['year']) ? $post['year'] : 0;
+
+        if($selected_year == 0) {
+            exit("Year is not set properly");
+        }
+
+        echo "The recieved data from server is: \n";
+
+        echo "\n**********************paymentArr************************\n";
+
+        print_r($paymentArr);
+
+        echo "\n**********************paymentAttr************************\n";
+
+        print_r($paymentAttr);
+
+        echo "\n********************billArr**************************\n";
+
+        print_r($billArr);
+
+        echo "\n********************billsAttr**************************\n";
+
+        print_r($billsAttr);
+
+        echo "\n*********************changedData*************************\n";
+
+        print_r($changedData);
+
+        echo "\n*********************selected_year*************************\n";
+
+        print_r($selected_year);
+
+        //exit();
+
+        $user_id = $_SESSION["userfrosting"]["user_id"];
+        //$done_by =  User:: where('id', '=', $user_id)-> select('display_name')->get();
+
+        $year = date('Y');
+
+        $link_table_b = Database::getSchemaTable('bills')->name;
+        $link_table_p = Database::getSchemaTable('payments')->name;
+        $link_table_u = Database::getSchemaTable('unit')->name;
+        $link_table_pt = Database::getSchemaTable('payment_transactions')->name;
+        $link_table_bt = Database::getSchemaTable('bill_transactions')->name;
+
+        //update bill payment
+        if ($paymentArr != null) {
+            $unitId = $paymentArr['unitId'];
+            foreach ($paymentArr['payment'] as $pay => $value) {
+                if ($value != null) {
+                    $paymentData[] = $value;
+                }
+                $where = array('unit_id' => $unitId,'year'=>$selected_year);
+                $payment = Capsule::table($link_table_p)->where($where)->get();
+                $unit = Capsule::table($link_table_u)->where('id', $unitId)->get();
+                if ($payment != null) {
+                    Capsule::table($link_table_p)->where($where)
+                        ->update(['payment_Amount' => serialize($paymentData)]);
+                } else {
+                    Capsule::table($link_table_p)->insert(['payment_Amount' => serialize($paymentData), 'year' => $selected_year, 'unit_id' => $unitId]);
+                }
+            }
+            if($paymentAttr != null) {
+                $amount = $paymentAttr['currPayment'];
+                $paymentDate = $paymentAttr['paymentDate'];
+                $dateStrr    = strtotime($paymentDate);
+                $paymentDate = date('Y-m-d', $dateStrr); 
+                $paymentType = $paymentAttr['paymentType'];
+                $paymentNumber = $paymentAttr['paymentNumber'];
+                $paymentNote = $paymentAttr['paymentNote'];
+                 Capsule::table($link_table_pt)->insert(['unit_id' => $unitId, 'amount' => $amount, 'payment_date' => $paymentDate,
+                'payment_type' => $paymentType, 'payment_number' => $paymentNumber, 'payment_note' => $paymentNote,
+                'executed_by' => $user_id, 'payment_year' => $selected_year]);
+            }
+        }
+        //update bill table , -1 represent no bills to be updated
+        if ($billArr != -1 && $billArr != null) {
+            $unitId = $billArr['unitId'];
+            foreach ($billArr['bills'] as $bill => $value) {
+                if ($value != null) {
+                    $billsData[] = $value;
+                    $where = array('unit_id'=> $unitId,'year' =>$selected_year);
+                    $bill = Capsule::table($link_table_b)->where($where)
+                        ->update(['billAmount' => serialize($billsData)]);
+                }
+            }
+            if($billsAttr != null) {
+                foreach ($billsAttr as $key => $value) {
+                    $bill_year_month =  $value['month'].'-'.$selected_year;
+                    $bill_old_amount = $value['oldAmount'];
+                    $bill_new_amount = $value['newAmount'];
+                    $bill_note =  $value['note'];
+                    Capsule::table($link_table_bt)->insert(['unit_id' => $unitId, 'bill_year_month' => $bill_year_month, 'bill_old_amount' => $bill_old_amount,
+                    'bill_new_amount' => $bill_new_amount,'bill_note' => $bill_note, 'executed_by' => $user_id]);
+                }
+            }
+        }
+    }
+
+    public function manageUnitBills($unitId, $year)
+    {
+
+        $unitBills = $this->getUnitsBill($unitId, $year);
+        return $unitBills;
+
+    }
+
+    public function manageUnitBillsAll($unitId, $year)
+    {
+
+        $unitBills = $this->getAllUnitBillsAndPaymentsAmounts($unitId, $year);
+        return $unitBills;
+
+    }
+
+    public function manageUnitBillsAllYears($unitId, $year)
+    {
+
+        $unitBills = $this->getAllUnitBillsAndPaymentsForAllYears($unitId, $year);
+        return $unitBills;
+
+    }
+    
+   public function manageUnitBillsForUser($unitId, $year)
+     {
+
+        $unitBills = $this->getUnitsBillforuser($unitId, $year);
+        return $unitBills;
+
+     }
+
+     //TODO if bills are already set, changing fixed bills won't change them.
+
+ public function getUnitsBill($unitId, $year)
+    {
+        $unitIds      = explode('-', $unitId);
+        $fixedBill    = $this->getFixedBill($year);
+        $link_table_b = Database::getSchemaTable('bills')->name;
+        $link_table_u = Database::getSchemaTable('unit')->name;
+        $link_table_p = Database::getSchemaTable('payments')->name;
+
+        //return($fixedBill);
+
+        $month = date('m');
+        $currYear = date('Y');
+
+        if($year > $currYear || $year < 2017) {
+            return null;
+        }
+
+        //return($currYear.$month);
+
+        $returnData = [];
+        foreach ($unitIds as $key => $value) {
+            $bills_where = array('uf_bills.unit_id'=> $value,'uf_bills.year'=>$year);
+            $bills   = Capsule::table($link_table_b)->where($bills_where)->get();
+            $unit    = Capsule::table($link_table_u)->where('uf_unit.id', '=', $value)->get();
+            $payment_where = array('uf_payments.unit_id' => $value,'uf_payments.year'=>$year);
+            $payment = Capsule::table($link_table_p)->where($payment_where)->get();
+
+            //return(unserialize($bills[0]['billAmount']));
+
+            //return("Unit IDs: ".$unitId." Year: ".$year);
+
+            //TODO when month changes it doesn't take into account previous changes to bill amounts and just uses the fixed bill amount
+            //TODO If year is less than current year put all bills and payments instead of just unitl current month
+            $billAmountlength = isset($bills[0]) ? count(unserialize($bills[0]['billAmount'])) < $month : false;
+            //return($billAmountlength);
+            if ($bills == null || $billAmountlength) {
+                $billsData = [];
+                $amountDue = 0;
+                 /*if ($year == $currYear) {
+                    for ($i = 1; $i <= $month; $i++) {
+                        $billsData[] = $fixedBill;
+                        $amountDue += $fixedBill;
+                    }
+                }
+                else {*/ 
+                    for ($i = 1; $i <= 12; $i++) {
+                        $billsData[] = $fixedBill;
+                        $amountDue += $fixedBill;
+                    }
+                //}
+                //if data exist update
+                if ($billAmountlength) {
+/*                      $billsData = unserialize($bills[0]['billAmount']);
+                    for ($i = count($billsData); $i < $month; $i++) {
+                        $billsData[$i] = $fixedBill;
+                    }  */
+                    $where= array('uf_bills.unit_id' => $value, 'year' => $year);
+                    Capsule::table($link_table_b)->where($where)
+                        ->update(['billAmount' => serialize($billsData)]);
+                } else {
+
+                    Capsule::table($link_table_b)->insertGetId(['billAmount' => serialize($billsData),
+                        'unit_id' => $value,
+                        'year' => $year]);
+                }
+
+
+                $returnData[$value] = $billsData;
+
+            } else {
+
+                $returnData[$value] = unserialize($bills[0]['billAmount']);
+
+            }
+
+            if ($payment != null) {
+
+                $returnData['payment' . '_' . $value] = unserialize($payment[0]['payment_Amount']);
+            }
+        }
+
+        return $returnData;
+    }
+    //TODO get all bills and payments form previous years including current year.
+
+    public function getAllUnitBillsAndPaymentsAmounts($unitId, $year)
+    {
+        if($year < 2017) {
+            return null;
+        }
+        $unitIds      = explode('-', $unitId);
+        $fixedBill    = $this->getFixedBill($year);
+        $link_table_b = Database::getSchemaTable('bills')->name;
+        $link_table_u = Database::getSchemaTable('unit')->name;
+        $link_table_p = Database::getSchemaTable('payments')->name;
+
+        $returnData = [];
+        foreach ($unitIds as $key => $value) {
+            $billSum = 0;
+            $paymentSum = 0;
+            for ($i = 2017; $i <= $year; $i++) {
+                $bills_where = array('uf_bills.unit_id'=> $value,'uf_bills.year'=>$i);
+                $bills   = Capsule::table($link_table_b)->where($bills_where)->get();
+                if($bills == null) {
+                    continue;
+                }
+
+                $billsData = unserialize($bills[0]['billAmount']);
+
+                for($j = 0; $j < count($billsData); $j++) {
+                    $billSum += $billsData[$j];
+                }
+
+                $payment_where = array('uf_payments.unit_id' => $value,'uf_payments.year'=>$i);
+                $payment = Capsule::table($link_table_p)->where($payment_where)->get();
+                if($payment == null) {
+                    continue;
+                }
+                $paymentsData = unserialize($payment[0]['payment_Amount']);
+
+                for($j = 0; $j < count($paymentsData); $j++) {
+                    $paymentSum += $paymentsData[$j];
+                }
+            }
+            $returnData[$value] = $billSum;
+            $returnData['payment' . '_' . $value] = $paymentSum;
+        }
+        return $returnData;
+    }
+
+
+    public function getAllUnitBillsAndPaymentsForAllYears($unitId, $year)
+    {
+        if($year < 2017) {
+            return null;
+        }
+        $unitIds      = explode('-', $unitId);
+        $fixedBill    = $this->getFixedBill($year);
+        $link_table_b = Database::getSchemaTable('bills')->name;
+        $link_table_u = Database::getSchemaTable('unit')->name;
+        $link_table_p = Database::getSchemaTable('payments')->name;
+        $link_table_n = Database::getSchemaTable('neighborhood')->name;
+
+        $returnData = [];
+        foreach ($unitIds as $key => $value) {
+            for ($i = 2017; $i <= $year; $i++) {
+                $billSum = 0;
+                $paymentSum = 0;
+                $bills_where = array('uf_bills.unit_id'=> $value,'uf_bills.year'=>$i);
+                $bills   = Capsule::table($link_table_b)->where($bills_where)->get();
+                if($bills == null) {
+                    $billSum = 0;
+                }
+                else {
+                    $billsData = unserialize($bills[0]['billAmount']);
+
+                    for($j = 0; $j < count($billsData); $j++) {
+                        $billSum += $billsData[$j];
+                    }
+                }
+
+                $payment_where = array('uf_payments.unit_id' => $value,'uf_payments.year'=>$i);
+                $payment = Capsule::table($link_table_p)->where($payment_where)->get();
+                if($payment == null) {
+                    $paymentSum = 0;
+                }
+                else {
+                    $paymentsData = unserialize($payment[0]['payment_Amount']);
+
+                    for($j = 0; $j < count($paymentsData); $j++) {
+                        $paymentSum += $paymentsData[$j];
+                    }
+                }
+
+                $unit_where = array('uf_unit.id' => $value);
+                $unitData = Capsule::table($link_table_u)->where($unit_where)->get();
+
+                $neighborhood_where = array('uf_neighborhood.id' => $unitData[0]['neighborhood']);
+                $neighborhoodData = Capsule::table($link_table_n)->where($neighborhood_where)->get();
+                
+/*                 $returnData['due' . '_' . $value . '_' . $i] = $billSum;
+                $returnData['paid' . '_' . $value . '_' . $i] = $paymentSum; */
+                $returnData[$unitData[0]['rawabicode'] . '_' . $i . '_' . $billSum . '_' . $paymentSum . '_' . $neighborhoodData[0]['neighborhood_en']] = null;
+            }
+        }
+        return $returnData;
+    }
+
+    // function to return Bills and payments Data for Users Pages 
+    //return $payments and bills as array ([Jan] => array(Bill,Payment)) 
+    public function getUnitsBillforuser($unitId, $year)
+    {
+        $unitIds      = explode('-', $unitId);
+        $fixedBill    = $this->getFixedBill($year);
+        $link_table_b = Database::getSchemaTable('bills')->name;
+        $link_table_u = Database::getSchemaTable('unit')->name;
+        $link_table_p = Database::getSchemaTable('payments')->name;
+
+        $month = date('m');
+    
+        $textMonth  = array(0 =>'Jan',
+            1 =>'Feb',
+            2 =>'Mar',
+            3 =>'Apr',
+            4 =>'May',
+            5 =>'Jun',
+            6 =>'Jul',
+            7 =>'Aug',
+            8 =>'Sep',
+            9 =>'Oct',
+            10 =>'Nov',
+            11 =>'Dec'
+         );
+
+        $BillsandPaymetns = array( );
+        foreach ($unitIds as $key => $value) {
+            $bills_where = array('uf_bills.unit_id'=> $value,'uf_bills.year'=>$year);
+            $bills   = Capsule::table($link_table_b)->where($bills_where)->get();
+            $unit    = Capsule::table($link_table_u)->where('uf_unit.id', '=', $value)->get();
+            $payment_where = array('uf_payments.unit_id' => $value,'uf_payments.year'=>$year);
+            $payment = Capsule::table($link_table_p)->where($payment_where)->get();
+
+            $billAmountlength = isset($bills[0]) ? count(unserialize($bills[0]['billAmount'])) < $month : false;
+            if ($bills == null || $billAmountlength) {
+                $billsData = [];
+                $amountDue = 0;
+                for ($i = 1; $i <= $month; $i++) {
+                    $billsData[] = $fixedBill;
+                    $amountDue += $fixedBill;
+                }
+                //if data exist update
+                if ($billAmountlength) {
+                    $where= array('uf_bills.unit_id' => $value, 'year' => $year);
+                    Capsule::table($link_table_b)->where($where)
+                        ->update(['billAmount' => serialize($billsData)]);
+                } 
+                else {
+
+                    Capsule::table($link_table_b)->insertGetId(['billAmount' => serialize($billsData),
+                        'unit_id' => $value,
+                        'year' => $year]);
+                }
+
+                $BillsandPaymetns = $billsData;
+            }
+            else {
+                $billsamount = unserialize($bills[0]['billAmount']);
+                for ($i=0; $i<count($billsamount);$i++){
+                    $BillsandPaymetns[$textMonth[$i]] = array($billsamount[$i]);
+                    if($payment != null){
+                    $paymentAmount= unserialize($payment[0]['payment_Amount']);
+                    $BillsandPaymetns[$textMonth[$i]] = array($billsamount[$i],$paymentAmount[$i]);
+                    }
+                }
+            }   
+        }
+        return $BillsandPaymetns;
+    }
+
+
+    public function getUnitsDetails($userId)
+    {
+        $unitDetails = User::with('units')->where('id', '=', $userId)->select('id', 'display_name', 'email')->get();
+
+        //this code need to refactor
+        for ($i = 0; $i < count($unitDetails); $i++) {
+            for ($j = 0; $j < count($unitDetails[$i]['units']); $j++) {
+                if (is_numeric($unitDetails[$i]['units'][$j]['neighborhood'])) {
+                    $neighborhood_id                              = (int) $unitDetails[$i]['units'][$j]['neighborhood'];
+                    $neighborhood                                 = Neighborhood::find($neighborhood_id);
+                    $unitDetails[$i]['units'][$j]['neighborhood'] = $neighborhood['neighborhood_en'] . " - " . $neighborhood['neighborhood_ar'];
+
+                }
+            }
+
+        }
+        return $unitDetails;
+    }
+     
+
+    public function getUnitsPayments()
+    {
+        $year = date('Y');
+        $unitsPayments = Unit::leftJoin('uf_user', 'uf_unit.user_id', '=', 'uf_user.id')
+            ->select('uf_unit.rawabicode', 'uf_user.display_name', 'uf_unit.neighborhood', 'uf_unit.id AS unit_id', 'uf_unit.user_id AS unit_owner')->get();
+
+        $link_table = Database::getSchemaTable('bills')->name;
+        $where = array('uf_payments.year' => $year ,'uf_bills.year' => $year);
+        $payment      = Capsule::table($link_table)
+            ->leftjoin('uf_payments', 'uf_bills.unit_id', '=', 'uf_payments.unit_id')
+            ->select('uf_bills.*')
+             ->where($where)->get();
+         
+          
+        $paymentArr = [];
+
+        if (!empty($payment)) {
+
+            for ($i = 0; $i < count($payment); $i++) {
+
+                $tempPayment = array(
+                    'id' => $payment[$i]['id'],
+                    'unitId'                => $payment[$i]['unit_id'],
+                    'year'                  =>$payment[$i]['year']);
+                array_push($paymentArr, $tempPayment);
+            }
+
+        }
+
+        $tmpArr = [];
+
+        for ($i = 0; $i < count($unitsPayments); $i++) {
+            if ($unitsPayments[$i]['display_name'] == null) {
+                $unitsPayments[$i]['display_name'] = 'Not Assigned';
+            }
+
+            $neighborhoodName = '';
+            if (is_numeric($unitsPayments[$i]['neighborhood'])) {
+                $neighborhood_id  = (int) $unitsPayments[$i]['neighborhood'];
+                $neighborhood     = Neighborhood::find($neighborhood_id);
+                $neighborhoodName = $neighborhood['neighborhood_en'] . " - " . $neighborhood['neighborhood_ar'];
+
+            }
+
+            $billsArray = '';
+           
+
+            if(isset($paymentArr[$i])){
+               
+               if ($unitsPayments[$i]['unit_id'] == $paymentArr[$i]['unitId']) {
+               
+             
+                $billsArray = $paymentArr;
+            } else {
+                $billsArray = null;
+
+            } 
+            }
+            
+
+            $temp = array('rawabi_code' => $unitsPayments[$i]['rawabicode'],
+                'user_name'                 => $unitsPayments[$i]['display_name'],
+                'unit_Id'                   => $unitsPayments[$i]['unit_id'],
+                'unit_owner'                => $unitsPayments[$i]['unit_owner'],
+                'neighborhood'              => $neighborhoodName,
+                'payment'                   =>$billsArray);
+
+            array_push($tmpArr, $temp);
+
+        }
+
+        return $tmpArr;
+
+    }
+
+    public function gettUnitsPayments($userId)
+    {
+        $year = date('Y');
+        $unitsPayments = Unit::leftJoin('uf_user', 'uf_unit.user_id', '=', 'uf_user.id')
+            ->select('uf_unit.rawabicode','uf_unit.topocode', 'uf_unit.neighborhood', 'uf_unit.id AS unit_id', 'uf_unit.user_id AS unit_owner')->where('uf_unit.user_id','=',$userId)->get();
+
+        $link_table = Database::getSchemaTable('bills')->name;
+        $where = array('uf_payments.year' => $year ,'uf_bills.year' => $year);
+        $payment      = Capsule::table($link_table)
+            ->leftjoin('uf_payments', 'uf_bills.unit_id', '=', 'uf_payments.unit_id')
+            ->select('uf_bills.*','uf_payments.amount_Due',
+             'uf_payments.total_balance', 'uf_payments.remaining')
+             ->where($where)->get();
+         
+          
+        $paymentArr = [];
+
+        if (!empty($payment)) {
+
+            for ($i = 0; $i < count($payment); $i++) {
+
+                $tempPayment = array(
+                    'id' => $payment[$i]['id'],
+                    'unitId'                => $payment[$i]['unit_id'],
+                    'year'                  =>$payment[$i]['year'],
+                    'amount_due'                => $payment[$i]['amount_Due'],
+                    'total_balance'             => $payment[$i]['total_balance'],
+                    'remaining'                 => $payment[$i]['remaining']);
+                array_push($paymentArr, $tempPayment);
+            }
+
+        }
+
+        $tmpArr = [];
+
+        for ($i = 0; $i < count($unitsPayments); $i++) {
+            if ($unitsPayments[$i]['display_name'] == null) {
+                $unitsPayments[$i]['display_name'] = 'Not Assigned';
+            }
+
+            $neighborhoodName = '';
+            if (is_numeric($unitsPayments[$i]['neighborhood'])) {
+                $neighborhood_id  = (int) $unitsPayments[$i]['neighborhood'];
+                $neighborhood     = Neighborhood::find($neighborhood_id);
+                $neighborhoodName = $neighborhood['neighborhood_en'] . " - " . $neighborhood['neighborhood_ar'];
+
+            }
+
+            $billsArray = '';
+           
+
+            if(isset($paymentArr[$i])){
+               
+               if ($unitsPayments[$i]['unit_id'] == $paymentArr[$i]['unitId']) {
+               
+             
+                $billsArray = $paymentArr;
+            } else {
+                $billsArray = null;
+
+            } 
+            }
+            
+
+            $temp = array('rawabi_code' => $unitsPayments[$i]['rawabicode'],
+                'topocode'                  =>$unitsPayments[$i]['topocode'],
+                'user_name'                 => $unitsPayments[$i]['display_name'],
+                'unit_Id'                   => $unitsPayments[$i]['unit_id'],
+                'unit_owner'                => $unitsPayments[$i]['unit_owner'],
+                'neighborhood'              => $neighborhoodName,
+                'payment'                   =>$billsArray);
+
+            array_push($tmpArr, $temp);
+
+        }
+
+        return $tmpArr;
+
+    }
+}

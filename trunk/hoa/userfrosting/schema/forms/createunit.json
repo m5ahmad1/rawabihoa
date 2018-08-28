@@ -1,0 +1,43 @@
+{
+     "building" : {
+        "validators" : {
+            "required" : {
+                "message" : "ACCOUNT_SPECIFY_building"
+            },
+    
+        }
+    },
+
+      "unitid" : {
+        "validators" : {
+            "required" : {
+                "message" : "ACCOUNT_SPECIFY_UNITID"
+            }
+        }
+    }
+     "neighborhood" : {
+        "validators" : {
+            "required" : {
+                "message" : "ACCOUNT_SPECIFY_neighborhood"
+            }
+        }
+    }
+
+
+    "owner_name" : {
+        "validators" : {
+            "required" : {
+                "message" : "ACCOUNT_SPECIFY_USERNAME"
+            }
+        }
+    },
+     "dateofres" : {
+        "validators" : {
+            "required" : {
+                "message" : "ACCOUNT_SPECIFY_DATEOFREG"
+            }
+        }
+    }
+
+   
+}

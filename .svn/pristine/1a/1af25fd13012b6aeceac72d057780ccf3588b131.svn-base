@@ -1,0 +1,710 @@
+/*
+*  styles
+*/
+
+/* latin */
+body{
+
+    overflow-x:hidden !important;
+}
+@font-face {
+    font-family: 'Bree Serif';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Bree Serif'), local('BreeSerif-Regular'), url(../css/fonts/LQ7WLTaITDg4OSRuOZCps_k_vArhqVIZ0nv9q090hN8.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+}
+
+body, h1, h2, h3, h4, h5, h6{
+    font-family: 'Bree Serif', serif;
+}
+
+.rawabi-logo {
+    width: 100px;
+}
+.display-inline{
+    display: inline;
+}
+.padding-logo {
+    padding: 5px 15px;
+}
+.rowForUploadFiles{
+    min-height:700px;
+    padding-left: 5px;
+}
+.btnDivExportCancel{
+    padding-bottom: 5px;
+    padding-left: 16px;
+}
+.FiltersForUnitsPaysTable{
+    padding-bottom:15px;
+}
+
+.pager li>a,
+.pager li>span {
+    padding: inherit;
+    background-color: inherit;
+    border: inherit;
+    border-radius: inherit;
+}
+
+.pager li i {
+    color: #337ab7;
+    border: none;
+}
+
+.pager li a:hover,
+.pager li a:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.full-width {
+    width: 100%;
+}
+
+li.pager-control {
+    border: none;
+}
+
+#table-users-pager .float-none,
+#table-groups-pager .float-none {
+    float: inherit;
+    border: none;
+}
+
+#table-users-pager .border-blue,
+#table-groups-pager .border-blue {
+    border: 1px solid #337ab7;
+}
+
+
+
+/*
+    style navbar
+*/
+
+.rawabi-skyline {
+    background-image: url(../images/skyline.png);
+    background-position: center center;
+    background-size: 128px 60px;
+    background-repeat: repeat-x;
+}
+
+
+
+
+/*fix header responsive in navbar*/
+
+.navbar-header {
+    width: 100%;
+}
+
+.margin-bottom-15px {
+    margin-bottom: 15px;
+}
+
+.margin-bottom-20 {
+    margin-bottom: 20px;
+}
+
+.loader-modal-lg {
+    border: none;
+    text-align: center;
+    display: block;
+    margin-top: -100px;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.panel-primary .panel-theme-color {
+    background-color: #0e1a35;
+    border-color: #0e1a35;
+}
+
+.panel-theme-color {
+    background-color: #0e1a35;
+    border-color: #0e1a35;
+    color: white;
+}
+
+.display-inline {
+    display: inline
+}
+
+
+
+/*
+*
+*
+*footer styles
+*
+*
+*/
+.footer-width {
+    position: absolute;
+    width: calc(100% - 200px);
+    left: 200px;
+}
+
+@media screen and (max-width: 1024px) {
+    .footer-width {
+        width: 100%;
+        left: 0;
+    }
+}
+.buttom-footer{
+    
+    background-color: #0e1a35;
+    color: white;
+}
+.buttom-footer a{
+    color:white;
+}
+
+.FaceBookLocation{
+    padding-top: 15px;
+    font-size: 18px;
+}
+/* Responsive Portrait and Landscape */
+@media only screen
+and (min-device-width: 320px) 
+and (max-device-width: 765px){
+    .buttom-footer{
+        position: inherit;
+        text-align: center;
+    }
+    .text-right,.text-left{
+        text-align: center;
+    }
+    .buttom-footer.footer-width{
+        width: 105%;
+    }
+    .buttom-footer.width-87-per {
+        width: inherit;
+    }
+}
+
+
+
+/*social links design*/
+/*.social {
+    position: initial;
+    height: 100px;
+    left: 50%;
+}
+
+.social li {
+    display: block;
+    height: 4em;
+    line-height: 4em;
+    position: absolute;
+    -webkit-transition: -webkit-transform .7s;
+    -moz-transition: -moz-transform .7s;
+    -ms-transition: -ms-transform .7s;
+    -o-transition: -o-transform .7s;
+    transition: transform .7s;
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+    text-align: center;
+    width: 4em;
+
+}
+
+.social a {
+    color: #fffdf0;
+    display: block;
+    height: 4em;
+    line-height: 6em;
+    text-align: center;
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    width: 4em;
+
+}
+
+.social li:hover {
+  -webkit-transform: scale(1.3,1.3) rotate(45deg);
+    -moz-transform: scale(1.3,1.3) rotate(45deg);
+  -ms-transform: scale(1.3,1.3) rotate(45deg);
+    -o-transform: scale(1.3,1.3) rotate(45deg);
+  transform: scale(1.3,1.3) rotate(45deg);
+}
+
+.facebook {
+    background: #155b9d;
+    top: 25%;
+    left: 15%;
+}
+
+.twitter {
+    background: #1a9ec4;
+    top: 25%;
+    left: 30%;
+}
+.pinterest {
+    background: #e11a30;
+    top: 25%;
+    left: 45%;
+}*/
+.footer-asal{
+    padding-top: 15px;
+    font-size: 24px;
+}
+
+.width-87-per{
+    width: 87%;
+}
+/*** overriding***/
+
+
+/*override bootstrap styles*/
+
+.btn-primary {
+    background-color: #0e1a35;
+    border-color: #2e6da4;
+}
+
+.label-primary {
+    background-color: #0e1a35;
+}
+
+.btn-primary.disabled,
+.btn-primary[disabled] {
+    background-color: #0e1a35;
+    border-color: #2e6da4;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary.focus,
+.btn-primary:active {
+    background-color: #1e3872;
+}
+
+.panel-primary {
+    border:0;
+    width: calc(100% - 200PX);
+    border-left: 0;
+    float: right;
+}
+
+.sepration-line {
+    border-bottom: solid;
+    margin-bottom: 3px;
+}
+
+.finance-type,
+.tablesorter td {
+    vertical-align: middle !important;
+    text-align: center;
+}
+
+.tablesorter th {
+    text-align: center !important;
+}
+
+.modal-unit-table tr , .modal-unit-table th{
+    text-align: center;
+}
+
+.no-margin{
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+
+
+/*make unit table responsive at small screens*/
+
+@media only screen and (max-width: 466px){
+    .tablesorter tr{
+        font-size: 15px;
+    }
+}
+@media only screen and (max-width: 444px){
+    .tablesorter tr{
+        font-size: 12px;
+    }
+}
+@media only screen and (max-width: 370px){
+    .tablesorter tr{
+        font-size: 10px;
+    }
+}
+@media only screen and (max-width: 768px),
+(min-width: 768px) and (max-width: 1024px) {
+    .panel-primary {
+        width: 100%;
+    }
+    .save-icon {
+        width: 100px;
+    }
+    .input-group-addon.save-icon {
+        width: 40px;
+    }
+    .inputs {
+        width: auto !important;
+    }
+    .sepration-line {
+        display: none;
+    }
+    /* Force table to not be like tables anymore */
+    .tablesorter table,
+    .tablesorter thead,
+    .tablesorter tbody,
+    .tablesorter th,
+    .tablesorter td,
+    .tablesorter tr {
+        display: block;
+    }
+
+    /* Hide table headers (but not display: none;, for accessibility) */
+    .tablesorter thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    .tablesorter td {
+        vertical-align: middle !important;
+    }
+    .tablesorter tr {
+        border: 1px solid #ccc;
+    }
+
+    .tablesorter td {
+        /* Behave  like a "row" */
+        border: none !important;
+        border-bottom: 2px solid #eee !important;
+        position: relative !important;
+        padding-left: 50% !important;
+        text-align: left !important;
+    }
+
+    .tablesorter td:before {
+        /* Now like a table header */
+        position: absolute;
+        /* Top/left values mimic padding */
+        top: 6px;
+        left: 6px;
+        padding-right: 10px;
+        white-space: nowrap;
+    }
+
+    .navbar-header {
+        float: none;
+    }
+    .navbar-left,
+    .navbar-right {
+        float: none !important;
+    }
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .navbar-fixed-top {
+        top: 0;
+        border-width: 0 0 1px;
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+        margin-top: 7.5px;
+    }
+    .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .collapse.in {
+        display: block !important;
+    }
+    .navbar-collapse {
+        display: none !important;
+    }
+    .modal.fade .modal-dialog {
+
+        -webkit-transform: translate(0, 0);
+        -ms-transform: translate(0, 0);
+        -o-transform: translate(0, 0);
+        transform: translate(0, 0);
+    }
+
+    .tablesorter td:nth-of-type(1):before {
+        content: "User/Info";
+    }
+    .tablesorter td:nth-of-type(2):before {
+        content: "Registered Since";
+    }
+    .tablesorter td:nth-of-type(3):before {
+        content: "Last Sign-in";
+    }
+    .tablesorter td:nth-of-type(4):before {
+        content: "Status/Actions";
+    }
+    .tablesorter td:nth-of-type(5):before {
+        content: "Jan";
+    }
+    .tablesorter td:nth-of-type(6):before {
+        content: "Feb";
+    }
+    .tablesorter td:nth-of-type(7):before {
+        content: "March";
+    }
+    .tablesorter td:nth-of-type(8):before {
+        content: "April";
+    }
+    .tablesorter td:nth-of-type(9):before {
+        content: "May";
+    }
+    .tablesorter td:nth-of-type(10):before {
+        content: "June";
+    }
+    .tablesorter td:nth-of-type(11):before {
+        content: "July";
+    }
+    .tablesorter td:nth-of-type(12):before {
+        content: "Aug";
+    }
+    .tablesorter td:nth-of-type(13):before {
+        content: "Sep";
+    }
+    .tablesorter td:nth-of-type(14):before {
+        content: "Oct";
+    }
+    .tablesorter td:nth-of-type(15):before {
+        content: "Nov";
+    }
+    .tablesorter td:nth-of-type(16):before {
+        content: "Dec";
+    }
+    .tablesorter td:nth-of-type(17):before {
+        content: "Amount due";
+    }
+    .tablesorter td:nth-of-type(18):before {
+        content: "Paid";
+    }
+    .tablesorter td:nth-of-type(19):before {
+        content: "Remaining";
+    }
+    .tablesorter td:nth-of-type(20):before {
+        content: "Save";
+    }
+
+
+    #unitTable td:nth-of-type(1):before {
+        content: "Neighborhood" !important;
+    }
+    #unitTable td:nth-of-type(2):before {
+        content: "owner" !important;
+    }
+    #unitTable td:nth-of-type(3):before {
+        content: "Date OF Registration" !important;
+    }
+    #unitTable td:nth-of-type(4):before {
+        content: "Rawabi Code" !important;
+    }
+    #unitTable td:nth-of-type(5):before {
+        content: "Topo Code" !important;
+    }
+    #unitTable td:nth-of-type(6):before {
+        content: "Key Handing" !important;
+    }
+    #unitTable td:nth-of-type(7):before {
+        content: "Actions" !important;
+    }
+}
+
+#create , #edit , #delete ,#paymentConfirm ,#updateUnitBills {
+    overflow: hidden;
+}
+#allTransaction{
+    width: 100% !important;
+}
+#allTransaction th{
+    background-color: #0e1a35;
+    color : white;
+}
+#allFiles{
+    width: 100% !important;
+}
+#allFiles th{
+    background-color: #0e1a35;
+    color : white;
+}
+#neighborhoodTable{
+    width: 100% !important;
+}
+#neighborhoodTable th{
+    background-color: #0e1a35;
+    color : white;
+}
+
+
+
+.yearPayment i{
+    width: 200px !important;
+}
+.create-unit-alert .alert , .payment-alert .alert{
+    margin-bottom: 0 !important;
+}
+.panel-primary .panel-heading {
+    background-color: #0e1a35;
+    border-color: #2e6da4;
+}
+
+.has-switch span.switch-primary,
+.has-switch span.switch-left {
+    background: #0e1a35;
+}
+
+.pagination>.active>a {
+    background-color: #0e1a35;
+}
+
+.pagination>.active>a:hover {
+    background-color: #1e3872;
+}
+
+/*.panel.panel-primary a,
+.panel.panel-green-dashboard a {
+    color: #0e1a35;
+}*/
+
+.editableField{
+    outline: -webkit-focus-ring-color auto 5px;
+    background: #fff;
+}
+.createYearPayment{
+    margin-top: 5px;
+}
+.paymentTrBackground{
+
+    background-color: #f5f5f5 !important;
+}
+.bootstrap-datetimepicker-widget{
+    top: 50%!important;
+    left: 18% !important;
+}
+/*
+ common width form
+*/
+
+.form-control.width-50 {
+    width: 50%;
+    display: inline-block;
+}
+
+.form-control.width-30 {
+    width: 30%;
+    display: inline-block;
+}
+
+
+
+/*fadi*/
+
+.form-control.width-12 {
+    width: 12%;
+}
+
+.available-filter .form-group.margin-left-5 {
+    display: block
+}
+
+.form-control.width-25 {
+    width: 25%;
+    display: inline-block;
+}
+
+.form-control.width-60 {
+    width: 60%;
+    display: inline-block;
+}
+
+.width-25 {
+    width: 25%;
+}
+
+.modal.fade.reservation-modal-lg.in .form-control.width-45 {
+    width: 45%;
+    vertical-align: top;
+}
+
+.margin-right-20-per {
+    margin-right: 20%;
+}
+
+
+
+/*general css*/
+
+.display-none {
+    display: none;
+}
+
+.display-block {
+    display: block;
+}
+
+.no-padding {
+    padding: 0;
+}
+
+.full-height {
+    height: 100%;
+}
+
+
+
+/*fix disabled buttons*/
+
+.btn.disabled,
+.btn[disabled],
+fieldset[disabled] .btn {
+    pointer-events: painted;
+}
+
+
+
+/*vertical align 30%*/
+
+.vertical-align-40-per {
+    position: relative;
+    top: 40%;
+    transform: translateY(-40%);
+}
+
+.special-green {
+    color: #71BF45;
+}
+
+.MangeProfileForm{
+    float:left;
+}
+
+@media screen and (max-width: 767px){
+.table-responsive{
+    position: relative; 
+ }
+}
+#Login-alerts{
+margin-left: 34%;
+margin-right: 34%;
+}
+
+.tablepadding{
+    padding-top: 10px;
+}

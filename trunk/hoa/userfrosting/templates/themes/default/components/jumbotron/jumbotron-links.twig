@@ -1,0 +1,14 @@
+{% set can_register = site.can_register|default(false) %}
+<div class="jumbotron-links">
+  
+    <div class='row'>
+        <div class='col-md-12'>
+          <a href='{{site.uri.public}}/account/forgot-password' class='btn btn-link text-shadow-black-color-white' role='button' value='Forgot Password'>Forgot your password?</a>
+        </div>
+    </div>
+    <div class='row'>
+        <div class='col-md-12'>
+          <a href='{{site.uri.public}}/account/register' class='btn btn-link text-shadow-black-color-white' role='button' value='Activate'>Sign Up</a>
+        </div>
+    </div>
+</div>

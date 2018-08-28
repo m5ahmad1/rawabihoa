@@ -1,0 +1,155 @@
+<<<<<<< HEAD
+<?php
+        
+namespace UserFrosting;
+
+use \Illuminate\Database\Capsule\Manager as Capsule;
+
+class Unit extends UFModel {
+
+    protected static $_table_id = "unit";
+	
+	/*public function payments($unit_id){
+
+	    $link_table = Database::getSchemaTable('')->name;
+        return Capsule::table($link_table)->where("unit_id",$unit_id)->get();
+
+	}*/
+	public function getUnitsByOwner($owner)
+	{
+		
+		  $link_table = Database::getSchemaTable('unit')->name;
+        $res= Capsule::table($link_table)->where("owner","abatta")->get();
+		return $res;
+	}
+	
+	public function getAllUnits()
+	{
+		$units = Unit::leftJoin('uf_user', 'uf_unit.user_id', '=', 'uf_user.id')
+			->select('uf_user.display_name','uf_user.id AS user_id','uf_unit.*')
+            ->get();
+			
+		for($i=0;$i<count($units); $i++)
+		{
+				if($units[$i]['owner']==null)
+				{
+					$units[$i]['display_name']="Not Assigned";
+				}
+				
+				
+			
+		}
+			
+
+		return $units;
+		
+		
+	}
+
+	public function assignUnitToUser($unit_id,$user_id){
+		Unit::where(['id'=> $unit_id])
+                ->update(['owner'=> $user_id]);
+	}
+
+	public function getUnassignedNeighborhood()
+	{
+		$units = Unit::select('uf_unit.id','uf_unit.neighborhood')
+			->where('owner', null)
+			->groupBy('uf_unit.neighborhood')
+            ->get();
+
+			if($units[$i]['neighborhood']==null)
+				{
+					$units[$i]['neighborhood']="Not Assigned";
+				}
+				
+		// for($i=0;$i<count($units); $i++)
+		// {
+		// 		if($units[$i]['owner']==null)
+		// 		{
+		// 			$units[$i]['display_name']="Not Assigned";
+		// 		}
+				
+				
+			
+		// }
+			
+
+		return $units;
+		
+		
+	}
+	
+	public function getRCodeByNeighboorhood($neighborhood)
+	{
+		$where= array('owner' => null, 'neighborhood' => $neighborhood);
+		$units = Unit::select('uf_unit.id','uf_unit.rawabicode')
+			->where($where)
+            ->get();
+			
+		return $units;
+		
+		
+	}
+
+	public function getTCodeByRCode($rc)
+	{
+		$where= array('owner' => null, 'rawabicode' => $rc);
+		$units = Unit::select('uf_unit.id','uf_unit.topocode')
+			->where($where)
+            ->get();
+			
+		return $units;
+		
+		
+	}
+=======
+<?php
+        
+namespace UserFrosting;
+
+use \Illuminate\Database\Capsule\Manager as Capsule;
+
+class Unit extends UFModel {
+
+    protected static $_table_id = "unit";
+	
+	/*public function payments($unit_id){
+
+	    $link_table = Database::getSchemaTable('')->name;
+        return Capsule::table($link_table)->where("unit_id",$unit_id)->get();
+
+	}*/
+	public function getUnitsByOwner($owner)
+	{
+		
+		  $link_table = Database::getSchemaTable('unit')->name;
+        $res= Capsule::table($link_table)->where("owner","abatta")->get();
+		return $res;
+	}
+	
+	public function getAllUnits()
+	{
+		$units = Unit::leftJoin('uf_user', 'uf_unit.user_id', '=', 'uf_user.id')
+			->select('uf_user.display_name','uf_user.id AS user_id','uf_unit.*')
+            ->get();
+			
+		for($i=0;$i<count($units); $i++)
+		{
+				if($units[$i]['owner']==null)
+				{
+					$units[$i]['display_name']="Not Assigned";
+				}
+				
+				
+			
+		}
+			
+
+		return $units;
+		
+		
+	}
+	
+>>>>>>> 03acf7ba341c6fe46fb8fdcc46ed01f507837a0f
+}

@@ -1,0 +1,71 @@
+{% extends "layouts/layout-jumbotron.twig" %}
+
+{% block page %}
+    {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, 
+    but BEFORE the page itself is rendered. #}
+    
+    {% set page = page | merge({
+        "title"       : "Reset Password",
+        "description" : "Reset your UserFrosting password.",
+        "active_page" : ""
+    }) %}    
+    {{ parent() }}
+    <link rel="stylesheet" href="{{site.uri.public}}/css/homepage.css" type="text/css"> 
+        <link rel="stylesheet" href="{{site.uri.public}}/css/forgot-Pass.css" type="text/css"> 
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="login-page forget-password">
+        <div class="rawabi-home-title text-center">
+            <h2 class="site-title">Reset Password</h1>
+            <p class="lead">
+                Please enter the email address you used to sign up.
+                A link with instructions to reset your password will be emailed to you.
+            </p>
+            {% include 'components/common/alerts.twig' %}
+            <form class='form-horizontal' role='form' name='request_password_reset' action='{{site.uri.public}}/account/forgot-password' method='post'>
+                <div class="form-group">
+                    {# <label for="input_email" class="control-label col-sm-4">Email</label> #}
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>                    
+                            <input id="input_email" type="text" class="form-control" placeholder="The email address you used to register" name="email">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success form-btn">Email Password Reset Link</button>
+                </div>
+            </form>
+        <button type="submit" name="BackToHome" class="btn btn-info form-btn" id="BackToHome" >Back To Home </button>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block page_scripts %} 
+    <script>  
+      
+        $(document).ready(function() { 
+         $('#BackToHome').on('click', function() {
+            window.location.replace(site['uri']['public']);        
+         });          
+            // Process form 
+            ufFormSubmit(
+                $("form[name='request_password_reset']"),
+                {{ validators | raw }},
+                $("#userfrosting-alerts"),
+               function(data, statusText, jqXHR) {
+                    // Forward to home page on success
+                    window.location.replace(site['uri']['public']);
+
+                }
+            );
+        });  
+
+
+    </script>
+{% endblock %}

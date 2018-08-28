@@ -1,0 +1,40 @@
+//Save Neighborhood
+$('#create').on('click', '#Createunit', function() {
+
+    var modal = $(this).closest('.modal');
+    var values = getValuesFromForm('.form-horizontal');
+    var ownerID = listData[values.owner];
+
+    if (modalValidityCheck(values, '.form-horizontal')) {
+
+        var date = values.dateofres.split("-").reverse().join("-");
+        var dateHandKey = values.key_handing.split("-").reverse().join("-");
+
+        var params = { owner: ownerID, neighborhood: values.neighborhood, dateofres: date, key_handing: dateHandKey, rawabicode: values.rawabicode, topocode: values.topocode, csrf_token: encodeURIComponent(csrf_token) };
+     
+
+         //----------------------
+        var url = site['uri']['public'] + "/createunit/";
+        var req1 = $.ajax({
+                type: "POST",
+                url: url,
+                data: params,
+                beforeSend: function() {
+                    
+                    $('.loader-modal-lg').modal('show')
+                },
+            }).done(function(data) {
+                $('#create').modal("hide");
+                $('.loader-modal-lg').modal('hide')
+                $('#unitTable').DataTable().ajax.reload();
+                $("#settings-alerts").html("<div class='alert alert-success'>New Unit Has been Added</div>");
+            })
+            .fail(function(err) {
+                $('.loader-modal-lg').modal('hide')
+                $('#create').modal("hide");
+                console.log("err", err)
+                $("#settings-alerts").html("<div class='alert alert-danger'>Failed to Add New Unit</div>");
+            });
+    }
+
+});

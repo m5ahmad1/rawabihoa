@@ -1,0 +1,356 @@
+{% extends "layouts/layout-dashboard.twig" %}
+{% set page_group = "ticket" %}
+{% block page %}
+    {% set page = page | merge({"title": "Complaints", "message": ""}) %}
+    {{ parent() }}
+{% endblock %}
+{% block content %}
+    <style>
+        @media only screen and (max-width: 768px), (min-width: 768px) and (max-width: 1024px) {
+            {% if checkAccess('uri_users') %} .tablesorter td:nth-of-type(1):before {
+                content: "User";
+            }
+            .tablesorter td:nth-of-type(2):before {
+                content: "Message";
+            }
+            .tablesorter td:nth-of-type(3):before {
+                content: "Feedback";
+            }
+            .tablesorter td:nth-of-type(4):before {
+                content: "Status";
+            }
+            .tablesorter td:nth-of-type(5):before {
+                content: "Sent At";
+            }
+            .tablesorter td:nth-of-type(6):before {
+                content: "Actions";
+            }
+
+            {% else %} .tablesorter td:nth-of-type(1):before {
+                content: "Message";
+            }
+            .tablesorter td:nth-of-type(2):before {
+                content: "Feedback";
+            }
+            .tablesorter td:nth-of-type(3):before {
+                content: "Status";
+            }
+            .tablesorter td:nth-of-type(4):before {
+                content: "Sent At";
+            }
+
+        {% endif %}
+    }
+    </style>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="panel panel-primary">
+                <div class="container-fluid">
+                    <h2>Complaint History</h2>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table id="complaintTable" class="tablesorter table table-bordered table-hover table-striped tablesorter-bootstrap dataTables cellspacing=0 ">
+                                    <thead>
+                                        <th class="all">User</th>
+                                        <th class="all">Message</th>
+                                        <th class="all">Feedback</th>
+                                        <th class="all">Status</th>
+                                        <th class="all">Sent At</th>
+                                        <th class="all">Actions</th>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="infoModal" role="dialog">
+        <div class="modal-content">
+            <div id="infomodalheader" class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                <h4 id="modalheader" class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <p id="modalresponse" style="overflow: auto"></p>
+            </div>
+            <div id="infomodalfooter" class="modal-footer">
+                <button id="submit" style="display:none" type="button" class="btn btn-success">Submit
+                    <span class="fa fa-arrow-right"></button>
+                    <button id="dismiss" type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+    {% block page_scripts %}
+        <script>
+            function isArabic(strInput) {
+                var arregex = /[\u0600-\u06FF]/;
+                if (arregex.test(strInput)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            $.validator.setDefaults({debug: true, success: "valid"});
+
+            function showInfo(header, body, size, submit, toggle) {
+                if (size === "big") {
+                    $("#infoModal").addClass("modal-lg");
+                } else {
+                    $("#infoModal").removeClass("modal-lg");
+                }
+                if (submit === true) {
+                    $("#submit").show();
+                    $("#dismiss").text("Cacnel");
+                } else {
+                    $("#submit").hide();
+                    $("#dismiss").text("OK");
+                }
+                $("#modalheader").html(header);
+                $("#modalresponse").html(body);
+                if (toggle !== "notoggle") 
+                    $('#infoModal').modal('toggle');
+                }
+            csrf_token = $("meta[name=csrf_token]").attr("content");
+            $('#ticketForm').validate();
+            $('#ticketForm').on('submit', function (event) {
+                event.preventDefault();
+                if ($('#ticketForm').valid()) {
+
+                    var formData = new FormData(this);
+                    formData.append('csrf_token', encodeURIComponent(csrf_token));
+                    $
+                        .ajax({type: 'POST', url: site['uri']['public'] + '/ticket/send',
+                            data: formData,
+                            contentType: false,
+                            cache: false,
+                            processData: false
+                        })
+                        .done(function (data) {
+                            if (data == "Added Successfully") {
+                                $('#complaintTable').DataTable().ajax.reload();
+                                showInfo("Hooray!", '<strong style="color:green">Success!</strong> Your message was recieved and you will hear from us soon');
+                                return;
+                            }
+                            showInfo("Oops!", data);
+                        })
+                        .fail(function (err, e1, e2) {
+                            showInfo("Oops!", '<strong style="color:red">Error!</strong> Something Went Wrong. ' + e2);
+                        });
+                    $('#ticketMessage').val('');
+                }
+            });
+            $(function () {
+
+                var table = $('#complaintTable').DataTable({
+                    'ajax': {
+                        "type": "Get",
+                        "url": site['uri']['public'] + '/ticket/getAllTickets',
+                        "dataSrc": function (json) {
+                        return json;
+                        }
+                    },
+                    "language": {
+                        "processing": '<i class="fa fa-circle-o-notch fa-spin"></i> Fetching records...',
+                        "emptyTable": "No complaints found"
+                    },
+                    "processing": true,
+                    "autoWidth": false,
+                    "paging": true,
+                    "ordering": true,
+                    "info": false,
+                    "searching": true,
+                    "responsive": true,
+                    "pageLength": 10,
+                    "columnDefs": [
+                        {
+                                "targets": [
+                                    0,
+                                    1,
+                                    2,
+                                    3,
+                                    4,
+                                    5
+                                ],
+                            "className": "pointandclick",
+                            "createdCell": function (td, cellData, rowData, row, col) {
+                                $(td).attr('data-toggle', 'tooltip');
+                                $(td).attr('title', 'Show full complaint');
+
+                                        if (col === 3) {
+
+                                        switch ($(td).text()) {
+                                            case 'open':
+                                                $(td).html('<span class="label label-success">Open <i class="fa fa-unlock"></i></span>');
+                                                break;
+                                            case 'in_progress':
+                                                $(td).html('<span class="label label-warning">In Progress <i class="fa fa-tasks"></i></span>');
+                                                break;
+                                            case 'closed':
+                                                $(td).html('<span class="label label-danger">Closed <i class="fa fa-lock"></i></span>');
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+
+                        columns: [
+                                {
+                                    "data": "display_name"
+                                }, {
+                                    "data": "message"
+                                }, {
+                                    "data": "feedback"
+                                }, {
+                                    "data": "status"
+                                }, {
+                                    "data": "sent_at"
+                                }, {
+                                    "data": null,
+                                    "defaultContent": '<button type="button" data-toggle="tooltip" title="Change status/Give feedback" class="btn btn-primary"><i class="fa fa-wrench"></i></button>'
+                                }
+                        ],
+
+                        fnRowCallback: function (row, data, iDisplayIndex, iDisplayIndexFull) {
+                            $(row).data('id', data.id);
+                        }
+                    });
+
+                    table.order([3, 'desc'], [4, 'desc'])
+
+
+                    $('#complaintTable tbody').on('click', 'button', function (ev) {
+
+                        var rowData = table.row($(this).closest("tr")).data();
+
+                        var selected = 'selected="selected"';
+
+                        var open = '<option value="open">Open</option>';
+                        var in_progress = '<option value="in_progress">In Progress</option>';
+                        var closed = '<option value="closed">Closed</option>';
+
+                        var position = 8;
+
+                        if (rowData.status === 'open') {
+                            open = [
+                                open.slice(0, position),
+                                selected,
+                                open.slice(position)
+                            ].join('');
+
+                        } else if (rowData.status === 'in_progress') {
+                            in_progress = [
+                                in_progress.slice(0, position),
+                                selected,
+                                in_progress.slice(position)
+                            ].join('');
+
+                        } else {
+                            closed = [
+                                closed.slice(0, position),
+                                selected,
+                                closed.slice(position)
+                            ].join('');
+
+                        }
+
+                        ticketID = rowData.id;
+
+                        showInfo("Change Status/Give Feedback", `<form id="feedbackForm">
+                                        <div class="form-group">
+                                          <select class="form-control" name="status" required="required">
+                                                                <option value="" disabled="disabled" selected="selected">Select Status</option>
+                                                                ` + open + `
+                                                               ` + in_progress + `
+                                                                ` + closed + `
+  </select>
+
+                                                                        </div>
+
+                                <input type="hidden" name="id" value=` + ticketID + `>                                        
+
+                                <div class="form-group">
+                                    <textarea class="form-control" name="feedback" rows="5" placeholder="Complaint Feedback" required="required">` + rowData.feedback + `</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success pull-right" style="display:none">Submit
+                                    <span class="fa fa-arrow-right"></span></button>
+                            </form>`, null, true);
+
+                        ev.stopPropagation();
+
+                    });
+
+                    $("#infoModal").on("click", "#submit", function () {
+                        var feedbackForm = $("#feedbackForm");
+                        feedbackForm.validate();
+                        if (feedbackForm.valid()) {
+                            $("#infoModal #feedbackForm").submit();
+                        }
+                    });
+
+                    $('#infoModal').on('submit', "#feedbackForm", function (event) {
+
+                        event.preventDefault();
+
+                        var formData = new FormData(this);
+                        formData.append('csrf_token', encodeURIComponent(csrf_token));
+                        $
+                            .ajax({type: 'POST', url: site['uri']['public'] + '/ticket/giveFeedback',
+                                data: formData,
+                                contentType: false,
+                                cache: false,
+                                processData: false
+                            })
+                            .done(function (data) {
+                                if (data == "Edited Successfully") {
+                                    $('#complaintTable').DataTable().ajax.reload();
+                                    showInfo("Hooray!", '<strong style="color:green">Success!</strong> Status changed/Feedback sent', null, null, "notoggle");
+
+                                    return;
+                                }
+                                showInfo("Oops!", data, null, null, "notoggle");
+                            })
+                            .fail(function (err, e1, e2) {
+                                showInfo("Oops!", '<strong style="color:red">Error!</strong> Something Went Wrong. ' + e2, null, null, "notoggle");
+                            });
+                    });
+
+                    $('#complaintTable tbody').on('click', 'td', function (ev) {
+                        var cell = table.cell(this);
+
+                        if (cell.index().column == 5) {}
+
+                    });
+
+                    $('#complaintTable tbody').on('click', 'tr', function () {
+
+                        var rowData = table.row(this).data();
+
+                        var    status = $(this).find('td:eq(3)').html();
+
+                        var feedbackDate = "Sent At " + rowData.feedback_sent_at;
+
+                        if (rowData.feedback_sent_at === null) {
+                            feedbackDate = "No feedback sent yet";
+                        }
+
+                        showInfo("Status: " + status, "<h4>Message: (Sent At " + rowData.sent_at + ")</h4>" + rowData.message + "<hr>" + "<h4>Feedback: (" + feedbackDate + ")</h4>" + rowData.feedback, "big");
+
+                    });
+
+                    $('#complaintTable tbody').on('mouseenter', 'tr', function () {
+                        $(this).addClass("hover");
+                    });
+
+                    $('#complaintTable tbody').on('mouseleave', 'tr', function () {
+                        $(this).removeClass("hover");
+                    });
+
+                });
+        </script>
+    {% endblock %}

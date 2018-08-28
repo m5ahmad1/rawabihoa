@@ -1,0 +1,206 @@
+{% extends "layouts/layout-dashboard.twig" %}
+
+{# Set page properties (page.*) here. #}
+{% block page %}
+    {# By putting this in a special block, we ensure that it will be set AFTER the default values are set in the parent template, 
+    but BEFORE the page itself is rendered. #}    
+    {% set page = page | merge({
+        "title"       : "Email Configration",
+        "description" : "Global settings for the site, including registration and activation settings, site title, admin emails, and default languages."
+    }) %}
+    {{ parent() }}
+{% endblock %}
+{% block content %}
+        <link rel="stylesheet" href="{{site.uri.public}}/css/common.css" type="text/css">
+    <div class="row">
+        <div class="col-md-12">
+        <div class='panel panel-primary'>
+            <div class="container-fluid">
+              <form class="form-inline">
+               <div class="form-group">
+              <h2  class="fa fa-globe">
+              </h2>
+              </div>
+               <div class="form-group">
+            <h2>Mail Configurations</h2>
+            </div>
+            </form>
+            </div>
+     
+        <div class='panel-body'>
+            <div id="settings-alerts">
+                <!-- <div class='alert alert-success'>All settings have been saved</div> -->
+            </div>
+             <div class="panel panel-default">
+            <div class="panel-body">
+             <div class="panel-body no-padding" style=>
+                <div class="form-group">
+                            <label for="input_host" class="col-xs-12 col-sm-2 col-lg-1 control-label">Host</label>
+                            <div class="col-xs-12 col-sm-10 col-lg-11 margin-bottom-15px">
+                                <input type="text" id="input_host" class="form-control" name="userfrosting[email_host]" value="{{site.email_host}}" required >
+                            </div>
+                            <label for="input_port" class="col-xs-11 col-sm-2 col-lg-1 control-label">Port</label>
+                            <div class="col-xs-12 col-sm-10 col-lg-11 margin-bottom-15px">
+                                <input type="text" id="input_port" class="form-control" name="userfrosting[email_port]" value="{{site.email_port}}" required>
+                            </div>
+                            <label for="input_auth" class="col-xs-12 col-sm-2 col-lg-1 control-label">Auth</label>
+                            <div class="col-xs-12 col-sm-10 col-lg-11 margin-bottom-15px">
+                                <div class="has-switch switch-animate switch-on" tabindex="0"><div><input type="checkbox" id="input_auth" class="form-control bootstrapswitch" name="userfrosting[email_auth]" value="{{site.email_auth}}" checked=""></div></div>
+                            </div>
+                            <label for="input_secure" class="col-xs-12 col-sm-2 col-lg-1 control-label">Secure</label>
+                            <div class="col-xs-12 col-sm-10 col-lg-11 margin-bottom-15px">
+                                <input type="text" id="input_secure" class="form-control" name="userfrosting[email_secure]" value="{{site.email_secure}}" required>
+                            </div>
+                            <label for="input_user" class="col-xs-12 col-sm-2 col-lg-1 control-label">User</label>
+                            <div class="col-xs-12 col-sm-10 col-lg-11 margin-bottom-15px">
+                                <input type="text" id="input_user" class="form-control" name="userfrosting[email_username]" value="{{site.email_username}}" required>
+                            </div>
+                            <label for="input_pass" class="col-xs-12 col-sm-2 col-lg-1 control-label">Password</label>
+                            <div class="col-xs-12 col-sm-10 col-lg-11 margin-bottom-15px">
+
+                                <input type="password" id="input_pass" class="form-control" value="{{site.email_pass}}" autocomplete="off" name="userfrosting[email_pass]" required>
+                            </div>
+                            
+                </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        <div class="col-xs-2 col-xs-offset-5">
+            <button class="btn btn-primary text-center" id="saveSettings">Save</button>
+        </div>
+        
+        </div>
+        
+
+    </div>
+</div>
+        
+{% endblock %}
+{% block page_scripts %}
+ <script type="text/javascript">
+    $(document).ready(function() {
+            var timer;
+             // // Autosave text fields
+            $("#saveSettings").click(function () {
+                 clearTimeout(timer); // Clear the timer so we don't end up with dupes.
+                timer = setTimeout(function() { // assign timer a new timeout 
+                    $("form[name='settings']").submit();
+                }, 700);
+            }); 
+            //set value of password input
+  // Autosave switches and selects
+            $("form[name='settings'] input[type=checkbox]").on("change", function () {
+                $("form[name='settings']").submit();
+            });
+            
+            $("form[name='settings'] select").on("change", function () {
+                $("form[name='settings']").submit();
+            });
+            // Autosave text fields
+            $("#saveSettings").click(function () {
+                clearTimeout(timer); // Clear the timer so we don't end up with dupes.
+                timer = setTimeout(function() { // assign timer a new timeout 
+                    var input_host=$('#input_host').val();
+                    var input_port=$('#input_port').val();
+                    var input_auth= $('#input_auth').is(':checked');
+                    var input_secure=$('#input_secure').val();
+                    var input_user=$('#input_user').val();
+                    var input_pass=$('#input_pass').val();
+                    var csrf_token = $("meta[name=csrf_token]").attr("content");
+
+                  
+                    var params={
+                        input_host:input_host,
+                        input_port:input_port,
+                         input_auth:input_auth,
+                        input_secure:input_secure,
+                        input_user:input_user,
+                        input_pass:input_pass,
+                        csrf_token:encodeURIComponent(csrf_token)
+                    };
+                    var url = site['uri']['public'] + "/smtpMailConfig/";
+
+                    // Append page CSRF token
+                    $.ajax({
+                      type: "POST",
+                      url: url,
+                      data: params,
+                    
+
+                    }).done(function(data){
+                      
+                        notifyMe();
+                    
+                        }).fail(function(err){
+                        notifyMe1();
+                     
+                   });
+                   
+                }, 700);
+            });
+            function notifyMe() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "All settings have been saved",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+            
+
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "All settings have been saved",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+function notifyMe1() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+  else if (Notification.permission === "granted") {
+        var options = {
+                body: "Could not save settings",
+                icon: "{{site.uri.public}}/images/Rawabi_Logo.png"
+                             };
+          var notification = new Notification("Notification",options);
+            setTimeout(notification.close.bind(notification), 4000);
+
+  }
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      if (!('permission' in Notification)) {
+        Notification.permission = permission;
+      }
+    
+      if (permission === "granted") {
+        var options = {
+              body: "Could not save settings",
+              icon: "{{site.uri.public}}/images/rawabi_Logo.png"
+          };
+        var notification = new Notification("Notification",options);
+                    setTimeout(notification.close.bind(notification), 4000);
+      }
+    });
+  }
+}
+    });
+    </script>
+{% endblock %}

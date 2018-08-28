@@ -1,0 +1,35 @@
+.up {
+	padding-top:41px;
+}
+
+.down{
+	padding-top:7px;
+}
+
+.top{
+	padding-top:10px;
+}
+
+.between{
+	padding-top: 13px;
+}
+
+.addicon {
+	color:#99B0BF; 
+	font-size:40px;
+	 font-weight:bold;
+}
+.large {
+	color:#99B0BF; 
+	font-size:30px;
+	 font-weight:bold;
+	 padding-left:10px;
+	 text-align: center;
+}
+a:hover{
+ color:#2ED969;
+	 font-weight:bold;	
+}
+
+
+

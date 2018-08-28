@@ -1,0 +1,74 @@
+body {
+    overflow-x:hidden;
+}
+
+.panel-primary {
+    border: 0;
+}
+
+ #complaintTable th, #complaintTable td
+{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#complaintTable {
+    width: 100% !important;
+}
+
+td.left_class {
+    text-align: left !important;
+}
+
+.label {
+    font-size: 14px;
+    font-family: Calibri;
+} 
+
+td.pointandclick {
+    cursor: pointer;
+}
+
+tr.hover td{
+    filter: brightness(90%) !important;
+}
+
+.greenClass  {
+    color: green;
+}
+
+.yellowClass  {
+    color: yellow;
+}
+
+.blueClass  {
+    color: blue;
+}
+
+li.active > a {
+    color: white !important;
+}
+
+@media screen and (min-width: 768px) {
+
+    .modal-xl {
+        width: 90%;
+        max-width:1200px;
+    }
+
+    .modal-lg{
+        width:900px;
+    }
+
+    .modal-sm{
+        width:300px;
+    }
+}
+
+.modal.modal-lg {
+    left: 0;
+    right: 0;
+    top: 50%;
+    margin: 0 auto;
+}
